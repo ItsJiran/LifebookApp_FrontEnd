@@ -8,16 +8,19 @@ module.exports = {
   output: {
     path: path.resolve(__dirname, './dist'),
     filename: 'index_bundle.js',
+    publicPath: '/',
   },
   target: 'web',
   devServer: {
     port: '5000',
-    static: {
-      directory: path.join(__dirname, 'public')
+    static: { 
+      directory: path.resolve(__dirname, 'public'), 
+      publicPath: '/public'
     },
     open: false,
     hot: true,
     liveReload: true,
+    historyApiFallback: true,
   },
   resolve: {
     extensions: ['.js', '.jsx', '.json'],
@@ -33,6 +36,16 @@ module.exports = {
         test: /\.css$/i,
         include: path.resolve(__dirname, 'src'),
         use: ['style-loader', 'css-loader','postcss-loader'],
+      },
+      {
+        test: /\.css$/i,
+        include: path.resolve(__dirname, 'public'),
+        use: ['style-loader', 'css-loader','postcss-loader'],
+      },
+      {
+        test: /\.svg$/i,
+        include: path.resolve(__dirname, 'public'),
+        use: ['svg-inline-loader','raw-loader'],
       },
     ],
   },
