@@ -14,7 +14,8 @@ function App(){
       <div className='max-w-lg mx-auto h-screen overflow-y-auto overflow-x-hidden'>
           <AnimatePresence mode="wait" initial='false'>
               <Routes location={location} key={location.pathname}>
-                  <Route path="/" element={<IndexPage/>} />
+                  <Route path="/*" element={<IndexPage/>}>
+                  </Route>
                   <Route path="login" element={<LoginPage/>} /> 
                   <Route path="register" element={<RegisterPage/>} />
               </Routes>

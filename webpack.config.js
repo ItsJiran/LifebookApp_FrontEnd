@@ -1,12 +1,19 @@
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const { dirname } = require('path');
 const path = require('path');
 const webpack = require('webpack');
+const NodePolyfillPlugin = require('node-polyfill-webpack-plugin')
+
+// specified environment
+if(process.env.NODE_ENV == 'production') var env_path = path.resolve(__dirname, './.env.prod');
+else                                     var env_path = path.resolve(__dirname, './.env.dev');
+const dotenv = require('dotenv').config({path:env_path});
 
 module.exports = {
   entry: './index.js',
-  mode: 'development',
+  mode: process.env.NODE_ENV,
   output: {
-    path: path.resolve(__dirname, './dist'),
+    path: path.resolve(__dirname, `./dist/${process.env.NODE_ENV}/`),
     filename: 'index_bundle.js',
     publicPath: '/',
   },
@@ -24,6 +31,10 @@ module.exports = {
   },
   resolve: {
     extensions: ['.js', '.jsx', '.json'],
+    fallback: {
+      'os':require.resolve("os-browserify/browser"),
+      "crypto": false,
+    }
   },
   module: {
     rules: [
@@ -54,5 +65,10 @@ module.exports = {
       template: path.join(__dirname, 'public', 'index.html')
     }),
     new webpack.HotModuleReplacementPlugin(),
+    new webpack.DefinePlugin({
+      'process.env': JSON.stringify(dotenv.parsed),
+      'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
+    }),
+    new NodePolyfillPlugin()
   ]
 };

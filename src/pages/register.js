@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useForm } from "react-hook-form";
 
-import CircleDecoration from "../components/CircleDecoration";
+import { CircleDecoration } from "../components/Decoration";
 import { Input, InputPassword } from "../components/inputs/Inputs";
 import { Button } from "../components/buttons/Buttons";
 import { Motions, Iconsax, Animate } from "../utils";
@@ -73,7 +73,7 @@ export default function RegisterPage() {
         >
             {/* Background */}
             <div className="absolute -z-1 h-full w-full top-0 left-0">
-                <CircleDecoration className="absolute -bottom-16 -right-5" />
+                <CircleDecoration className="h-32 w-32 absolute -bottom-16 -right-5"/>
             </div>
 
             {/* Header */}
@@ -98,6 +98,8 @@ export default function RegisterPage() {
                                 
                 <Button className='w-52 mx-auto block' value='DAFTAR' type='submit' />
             </form>
+
+            <p className="block mx-auto font-normal font-sans text-blue-dark-300 text-1sm mb-8">Sudah punya akun ? <Link to='/login' className="text-blue-400">Login Sekarang</Link></p>
 
         </motion.div>
     );

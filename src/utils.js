@@ -1,3 +1,6 @@
+// ----------------
+//     ASSETS
+// ----------------
 const assets = '/public/assets/';
 const iconsax = '/public/library/iconsax/';
 export const FilePath = {
@@ -9,7 +12,14 @@ export const FilePath = {
     },
 }
 
+// ----------------
+//    ANIMATION
+// ----------------
 export const Motions = {
+    'swipe-top':{
+        'in':{y:'0%'},
+        'out':{y:'-100%'},        
+    },
     'swipe-right':{
         'in':{x:'0%'},
         'out':{x:'-100%'},
@@ -30,9 +40,13 @@ export const Animate = {
     transition ease-in before:animate-ping duration-100`,
 };
 
+// ----------------
+//     ICONSAX
+// ----------------
 const IconsaxSrc = {
     'eye':'eye.svg',
     'info-circle':'info-circle.svg',
+    'close-circle':'close-circle.svg',
     'arrow-up-1':'arrow-up-1.svg',
     'arrow-up-2':'arrow-up-2.svg',
     'arrow-up-3':'arrow-up-3.svg',
@@ -55,12 +69,4 @@ export const Iconsax = {
     'linear':new IconsaxType('linear',IconsaxSrc),
     'outline':new IconsaxType('outline',IconsaxSrc),
     'bold':new IconsaxType('bold',IconsaxSrc),
-}
-
-export function isInputValid(name,formState){
-
-}
-export function isInputError(name,formState){
-    if(formState.errors[name] !== undefined) return formState.errors[name];
-    return 0;
 }
