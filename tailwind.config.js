@@ -19,9 +19,9 @@ module.exports = {
         400:'#314765',
       },
       'black':{
-        100:'#8d8f8e',
-        200:'#7d8390',
-        300:'#454a55',
+        100:'#C9C9C9',
+        200:'#7D8390',
+        300:'#454A55',
         400:'#232428',
       },
       'red':{
@@ -50,6 +50,7 @@ module.exports = {
       '1sm' : '0.8rem',
       '2sm' : '0.7rem',
       base: '1rem',
+      lg:'1.1rem',
       xl: '1.25rem',
       '2xl': '1.563rem',
       '3xl': '1.953rem',
@@ -59,6 +60,9 @@ module.exports = {
     extend: {
       zIndex:{
         '-1':'-1',
+      },
+      boxShadow:{
+        'top-nav':'0px -3px 13px rgba(209, 218, 235, 0.50)',
       }
     },
   },

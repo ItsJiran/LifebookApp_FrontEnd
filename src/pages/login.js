@@ -1,45 +1,46 @@
-import React, { useEffect } from "react";
+import axios from "axios";
+import React, { useContext, useReducer } from "react";
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import { Link } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { Link, redirect } from "react-router-dom";
 import { useForm } from "react-hook-form";
 
-import { CircleDecoration, Loading, Notification } from "../components/Decoration";
-import { Input, InputPassword } from "../components/inputs/Inputs";
-import { Button } from "../components/buttons/Buttons";
-import { Motions } from "../utils";
+import { LayerMain } from "../components/Layers";
+import { Input, InputPassword } from "../components/ui/Inputs";
+import { Button } from "../components/ui/Buttons";
+import { AnimateMotions, TimingMotions } from "../utils";
+
+import { Loading } from "../components/Components";
+import { AuthStatus } from "../hooks/Authenticated";
+
+import { useAuthController } from "../hooks_utils/AuthUtils";
+import { useNotifierController } from "../hooks_utils/NotifierUtils";
 
 export default function LoginPage() {
   // ========================================================================================================
   // ---------------------------------------- STATE AND VARIABLES -------------------------------------------
   // ========================================================================================================
-  const BACKEND = process.env.BACKEND_URL;
-  const [action,setAction] = React.useState(false);
-  const [notification,setNotification] = React.useState([
-    {
-      'title':'Test',
-      'message':'Test',
-      'type':'success',
-    }
-  ]);
+
+  const [action, setAction] = React.useState(false);
+  const NotifierController = useNotifierController();
+  const AuthController = useAuthController();
 
   const validator = yup.object().shape({
-    email:yup.string().email('Email is not valid').required(),
-    password:yup.string().min(6,'The minimum length is 6..').required(),
+    email: yup.string().email('Email is not valid').required(),
+    password: yup.string().min(6, 'The minimum length is 6..').required(),
   });
   const { register, watch, formState, handleSubmit, setValue, getValues } = useForm({
-      resolver:yupResolver(validator),
-      mode:'onBlur' && 'onChange',
-      delayError:300,
-      defaultValues:{
-          email:'',
-          password:'',
-      },
+    resolver: yupResolver(validator),
+    mode: 'onBlur' && 'onChange',
+    delayError: 300,
+    defaultValues: {
+      email: '',
+      password: '',
+    },
   });
   const regisrator = {
-      email      : register('email',validator.email),
-      password   : register('password',validator.password),
+    email: register('email', validator.email),
+    password: register('password', validator.password),
   }
 
   // ========================================================================================================
@@ -47,79 +48,118 @@ export default function LoginPage() {
   // ========================================================================================================
   React.useEffect(() => {
     var storage = JSON.parse(window.sessionStorage.getItem('inputsLogin'));
-    for(let key in storage) setValue(key, storage[key]);
+    for (let key in storage) setValue(key, storage[key]);
   }, []);
   React.useEffect(() => {
-    watch((data)=>{
-        window.sessionStorage.setItem('inputsLogin', JSON.stringify(watch(data)));
+    watch((data) => {
+      window.sessionStorage.setItem('inputsLogin', JSON.stringify(watch(data)));
     });
-  },[watch]);
+  }, [watch]);
 
   // ========================================================================================================
   // -------------------------------------------- FUNCTIONS -------------------------------------------------
   // ========================================================================================================
-  function formSubmit(e) {
-      // PREVENT MULTIPLE FORM SUBMIT
-      if(!action) setAction(true);
-      else        return console.error('Login Form Already Submitted !!');
+  function toggleAction(action) {
+    setAction(action);
+    NotifierController.toggleLoading(action);
+  }
+  function handleApiSuccess(e) {
+    const status = e.status;
+    const jwt_data = e.data
 
-      setTimeout(()=>{setAction(false)},1000);
-      setNotification([...notification,{
-        'title':'Test',
-        'message':'Test',
-        'type':'success',
-      }])
+    let notif_title = '';
+    let notif_message = '';
 
-      // window.sessionStorage.clear('inputsLogin');
-      // window.sessionStorage.clear('inputsRegister');
+    if (status == 200) {
+      AuthController.setJWT(jwt_data);
+      AuthController.setStatus(AuthStatus.VALID);
+
+      window.localStorage.setItem('AUTH_JWT', JSON.stringify(jwt_data));
+
+      notif_title = 'BERHASIL';
+      notif_message = 'Anda Berhasil Login..';
+    }
+
+    NotifierController.addNotification({
+      title: notif_title,
+      message: notif_message,
+      type: 'SUCCESS',
+    })
+
+    window.sessionStorage.clear('inputsLogin');
+    window.sessionStorage.clear('inputsRegister');
+  }
+  function handleApiError(e) {
+    let notif_title = '';
+    let notif_message = '';
+
+    if (e.code !== 'ERR_NETWORK') {
+      const res = e.response;
+      const status = res.status;
+
+      // Unauthorized
+      if (status == 401) {
+        notif_title = 'GAGAL'
+        notif_message = 'Email atau password yang anda masukkan salah..';
+      } else {
+        notif_title = 'GAGAL' + ' ' + status;
+        notif_message = res.data.mesage + '\n' + `Error Code : ` + status;
+      }
+    } else {
+      notif_title = 'GAGAL'
+      notif_message = 'Terjadi masalah dengan jaringan..';
+    }
+
+    NotifierController.addNotification({
+      title: notif_title,
+      message: notif_message,
+      type: 'ERROR',
+    })
+  }
+
+  async function formSubmit(e) {
+    // PREVENT MULTIPLE FORM SUBMIT
+    if (!action) toggleAction(true);
+    else return console.error('Login Form Already Submitted !!');
+
+    const data = {
+      email: e.email,
+      password: e.password,
+    }
+    const header = {
+      "Content-Type": "multipart/form-data",
+      "Accept": "application/json",
+    }
+
+    await axios.post(process.env.BACKEND_URL + 'api/login', data, header)
+      .then(handleApiSuccess)
+      .catch(handleApiError)
+
+    toggleAction(false);
   }
 
   // ========================================================================================================
   // ---------------------------------------------- RENDER --------------------------------------------------
   // ========================================================================================================
   return (
-    <motion.div className="container box-border relative min-h-screen bg-white overflow-hidden w-full flex flex-col justify-center"
-      initial={Motions['swipe-right'].out}
-      animate={Motions['swipe-right'].in}
-      exit={Motions['swipe-right'].out}
-      transition={{ ease: [0.08, 0.65, 0.53, 0.96], duration: 0.5 }}
-    >
+    <LayerMain animate={{ ...AnimateMotions['swipe-left-fade-in'], ...TimingMotions['ease-0.5'] }} className="py-6 px-5">
+      {/* Header */}
+      <img src='/public/assets/svg/auth-ilus-1.svg' className='mx-auto mb-6 h-60' />
+      <h1 className="font-bold font-sans text-2xl text-blue-400 mb-2">SIGN IN</h1>
+      <p className="font-normal font-sans text-blue-dark-300 mb-8 text-sm mr-2">Masukkan data anda untuk masuk ke dalam aplikasi.</p>
 
-      {/* Notification And Loading */}
-      <div className='absolute h-full w-full'>
-        <div className="sticky z-50 top-0">
-          <AnimatePresence mode='sync'>
-              {/* LOADING */}
-              { action ? <Loading variantAnimate="swipe-top" className="w-full top-2 absolute" key='loading'/> : '' }
-              {/* NOTIFICATION */}
-              { notification.length > 0 ? notification.map((item,index)=>{
-                return <Notification key={`notification-${index}`} className='mb-2 sticky top-0 w-32' index={index} {...item}/>;
-              }) : '' } 
-          </AnimatePresence>
-        </div>
-      </div>
+      {/* Form */}
+      <form onSubmit={handleSubmit(formSubmit)} action='/' method='POST' className="w-full h-fit mb-8">
+        <Input formState={formState} register={regisrator.email} className='mb-6' placeholder='Email' />
+        <InputPassword formState={formState} register={regisrator.password} className="mb-8" placeholder='Password' />
+        <Button className='w-52 py-2 text-lg mx-auto block' type='submit' variant={action ? 'blue-pressed' : 'blue'} >
+          {action ? <Loading className="h-6 w-6 filter-black-100 mx-auto" /> : <p className="cursor-pointer">MASUK</p>}
+        </Button>
+      </form>
 
-      {/* Background */}
-      <CircleDecoration className="h-32 w-32 absolute -bottom-16 -right-5" />
-
-      <div className="w-full h-full relative py-6 px-5">
-        {/* Header */}
-        <img src='/public/assets/svg/auth-ilus-1.svg' className='mx-auto mb-6 h-60' />
-        <h1 className="font-bold font-sans text-2xl text-blue-400 mb-2">SIGN IN</h1>
-        <p className="font-normal font-sans text-blue-dark-300 mb-8 text-sm mr-2">Masukkan data anda untuk masuk ke dalam aplikasi.</p>
-
-        {/* Form */}
-        <form onSubmit={handleSubmit(formSubmit)} action='/' method='POST' className="w-full h-fit mb-8">
-          <Input formState={formState} register={regisrator.email} className='mb-6' placeholder='Email' />
-          <InputPassword  formState={formState} register={regisrator.password} className="mb-8" placeholder='Password'/>
-          <Button className='w-52 mx-auto block' value='MASUK' type='submit' />
-        </form>
-
-        {/* Footer */}
-        <p className="block text-center font-normal font-sans text-blue-dark-300 text-1sm mb-8">Belum punya akun ? <Link to='/register' className="text-blue-400">Register Sekarang</Link></p>
-      </div>
-
-    </motion.div>
+      {/* Footer */}
+      <p className="block text-center font-normal font-sans text-blue-dark-300 text-sm mb-8">Belum punya akun ? <Link to='/register' className="text-blue-400">Register Sekarang</Link></p>
+    </LayerMain>
   );
 }
 

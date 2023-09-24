@@ -1,7 +1,6 @@
 import React from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Iconsax, Motions } from "../../utils";
-import RegisterPage from "../../pages/register";
 
 // for default input class 
 let CONTAINER_CLASS = `relative`;
@@ -41,7 +40,6 @@ export function Input({ register, placeholder, type, containerClass = '', classN
   function falseFocus(){
     setFocus(false);
   }
-
 
   // ========================================================================================================
   // ---------------------------------------------- RENDER --------------------------------------------------

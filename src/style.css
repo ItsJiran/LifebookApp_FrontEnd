@@ -40,7 +40,7 @@ html, body, #root{
     }
     
     .filter-black-100{
-        filter: invert(64%) sepia(6%) saturate(72%) hue-rotate(98deg) brightness(87%) contrast(86%);
+        filter: invert(85%) sepia(0%) saturate(5%) hue-rotate(259deg) brightness(99%) contrast(84%);
     }
     .filter-black-200{
         filter: invert(54%) sepia(10%) saturate(410%) hue-rotate(183deg) brightness(94%) contrast(87%);
