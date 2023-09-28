@@ -1,7 +1,18 @@
 import axios from "axios";
 import { useContext  } from "react";
+import { set } from "react-hook-form";
 import { AuthContext, AuthStatus, AuthAction, AuthInitial } from "../hooks/Authenticated";
 import { useNotifierController } from "./NotifierUtils";
+import { fetchApi } from "../utils/ApiUtils";
+
+class ApiError{
+
+    constructor(fetch){
+        this.status = fetch.status;
+        this.response = fetch.response;
+    }
+
+}
 
 // =====================================================================
 // ------------------------ CONTROLLER ---------------------------------
@@ -13,22 +24,32 @@ export function useAuthController(){
     }
     const setStatus = (payload) => {
         dispatch({
-            type:AuthAction.SET_STATUS,
+            type:AuthAction.status.set,
             payload:{
                 content:payload,
             }
         })
     }
+    const clearStatus = (payload) => {
+        dispatch({
+            type:AuthAction.status.clear,
+        })
+    }
 
     const getJWT = () => {
-        return state.jwt.token;
+        return state.jwt;
     }
     const setJWT = (payload) => {
         dispatch({
-            type:AuthAction.SET_JWT,
+            type:AuthAction.jwt.set,
             payload:{
                 content:payload,
             }
+        })
+    }
+    const clearJWT = (payload) => {
+        dispatch({
+            type:AuthAction.jwt.clear,
         })
     }
 
@@ -37,25 +58,31 @@ export function useAuthController(){
     }
     const setUser = (payload) => {
         dispatch({
-            type:AuthAction.SET_USER,
+            type:AuthAction.user.set,
             payload:{
                 content:payload,
             }
         })
     }
-
-    const clearAuth = (payload) => {
+    const clearUser = (payload) => {
         dispatch({
-            type:AuthAction.CLEAR,
+            type:AuthAction.user.clear,
         })
     }
 
+    const clear = (payload) => {
+        dispatch({
+            type:AuthAction.clear,
+        })
+    }
 
     return {
         setStatus : setStatus,
         setJWT : setJWT,
         setUser : setUser,
-        clearAuth : clearAuth,
+        clearJWT : clearJWT,
+        clearUser : clearUser,
+        clear : clear,
         getStatus : getStatus,
         getJWT : getJWT,
         getUser : getUser,
@@ -65,134 +92,359 @@ export function useAuthController(){
 }
 
 export function useAuthService(){
-
-    const NotifierController = useNotifierController;
+    
+    const NotifierController = useNotifierController();
     const AuthController = useAuthController();
 
-    const getAuthToken = () => {
-    
+    const getJWT = () => {
         // check if auth token jwt is exist on the state if exist then return the current token
-        const token = AuthController.getJWT();
-        if(token !== undefined) return token;
-        
-        // check if lcoalstorage has token, if exist return
-        var jwt_local = JSON.parse(window.localStorage.getItem('AUTH_JWT'));
+        const jwt_state = AuthController.getJWT();
+        const jwt_local = JSON.parse(window.localStorage.getItem('AUTH_JWT'));
 
+        if(jwt_state !== jwt_local && jwt_local == undefined) return undefined;
+        if(jwt_state !== undefined && jwt_state.token !== undefined) return jwt_state;
+        
         if(jwt_local == undefined || jwt_local == null) return undefined;
         if(jwt_local.token !== undefined) {
             AuthController.setJWT(jwt_local);
-            return jwt_local.token;
+            return jwt_local;
         }
         
         return undefined;
     }
 
-    // refresh token will return an oject that has status property and the api full data
-    const refreshToken = async (token) => {
-        const config = {
-            method:'get',
-            url: process.env.BACKEND_URL + 'api/refresh',
-            headers: { 'Authorization': 'Bearer ' + token, Accept:"application/json" },
+    // NOTE : the goal is persisting between state and the local memory so if one is set with new value
+    // the other one need to be set with the same value..
+    // * jwt and user variable are object 
+    const clear = ()=>{
+        clearJWT();
+        clearUser();
+    }
+    const clearJWT = () => {
+        AuthController.clearJWT();
+        window.localStorage.removeItem('AUTH_JWT');
+    }
+    const clearUser = () => {
+        AuthController.clearUser();
+        window.localStorage.removeItem('AUTH_USER');
+    }
+    const setJWT = (jwt) => {
+        AuthController.setJWT(jwt);
+        window.localStorage.setItem('AUTH_JWT',JSON.stringify(jwt));
+    }
+    const setUser = (user) => {
+        AuthController.setUser(user);
+        window.localStorage.setItem('AUTH_USER',JSON.stringify(user));
+    }
+    const setAuthStatus = (status, data) => {
+        if(status == AuthStatus.INVALID){
+            clearJWT();
+            clearUser();   
+            AuthController.setStatus(status);
+        } 
+
+        if(status == AuthStatus.VALID){
+            checkAuthData(data,true);
+            setJWT(data.jwt);
+            setUser(data.user);   
+            AuthController.setStatus(status);
         }
 
-        // use then catch and finally to be able forward the function
-        let tmp_obj = {
-            status:0,
-            response:'',            
+        if(status == AuthStatus.INITIAL){
+            AuthController.setStatus(status)
         }
 
-        var api = await axios(config)
-        .then((e)=>{
-            AuthController.setJWT(e.data);
-            window.localStorage.setItem('AUTH_JWT',JSON.stringify(e.data));
-            tmp_obj.status = e.status;
-            tmp_obj.response = e;
-        })
-        .catch((e)=>{
-            tmp_obj.status = e.response.status;
-            if(e.response.status == 401) window.localStorage.removeItem('AUTH_JWT');
-            tmp_obj.response = e.response;
-        })
-
-        // that's mean the token valid and set the state to use the refreshed version
-        return tmp_obj;
+        if(status == AuthStatus.INITIAL_ERROR){
+            AuthController.setStatus(status)
+        }
     }
 
-    // check token will return a boolean if the api hit 200 status code else will valse
-    const checkToken = async (token) => {
+    const checkAuthData = (data, error=false) => {
+        const jwt = data.jwt;
+        const user = data.user;
+        
+        if(jwt.token == undefined || jwt.type == undefined || jwt.expires_in == undefined) {
+            if(!error) return false;
+            throw Error('JWT in AuthData Is Not Valid');
+        }
+        if(user.id == undefined || user.email == undefined || user.role == undefined) {
+            if(!error) return false;
+            throw Error('User in AuthData Is Not Valid');
+        }
+
+        return true;
+    }
+
+    // Fetch
+    const fetchAuthApi = async (slug,method,token) => {
         const config = {
-            method:'get',
-            url: process.env.BACKEND_URL + 'api/me',
+            method:method,
+            url: process.env.BACKEND_URL + 'api/' + slug,
             headers: { 'Authorization': 'Bearer ' + token, Accept:"application/json" },
         }
 
-        // updated token container obj
-        let tmp_obj = {
+        let fetch = {
             status:0,
             response:'',            
         }
 
         await axios(config)
         .then((e)=>{
-            tmp_obj.status = e.status;
-            tmp_obj.response = e;
+            fetch.status = e.status;
+            fetch.response = e;
         })
         .catch((e)=>{
-            tmp_obj.status = e.response.status;
-            tmp_obj.response = e.response;
+            fetch.status = e.response.status;
+            fetch.response = e.response;
         })
 
-        return tmp_obj;
+        return fetch;
     }
 
-    // will return boolean if the api was hit, if there's an error during the api call or maybe the api server error
-    // will return the object axios, so other components can handle they own retry fetching,
-    const isTokenAuthenticated = async () => {
-
-        const token = getAuthToken();
-        if(token == undefined) return false;
-
-        var obj = await checkToken(token); 
-        if(obj.status == 200) return true;
+    // Will return obj and validate if the response obj contain id, email, and role
+    const fetchDataUser = async (token, throwError=false)=>{
+        const fetch = await fetchAuthApi('me','get',token);
+        const response = fetch.response;
         
-        if(obj.status == 401){
-            var obj = await refreshToken(token);
-            if(obj.status == 200) 
-                return true;
-            if(obj.status == 401) 
-                return false;
-            else {
-                return obj;
+        const isDataValid = response.data.id !== undefined &&
+                            response.data.email !== undefined && 
+                            response.data.email !== undefined; 
+
+        if(fetch.status == 401) return fetch;
+        if(fetch.status == 200 && isDataValid) return fetch;
+
+        if(throwError) throw new ApiError(fetch);
+        else           return new ApiError(fetch);
+    }
+    // Will return true or false else than that then will be recognize as error
+    const isTokenAuthenticated = async (token, throwError=false) => {
+        const fetch = await fetchAuthApi('me','get',token);
+
+        if(fetch.status == 200) return true;
+        if(fetch.status == 401) return false;
+
+        if(throwError) throw new ApiError(fetch);
+        else           return new ApiError(fetch);
+    }
+
+    // refresh token will return an oject that has status property and the api full data else than that then will be recognize as error
+    const refreshJWT = async (token,throwError=false) => {
+        const fetch = await fetchAuthApi('refresh','get',token);
+
+        if(fetch.status == 200) return fetch;
+        
+        if(throwError) throw new ApiError(fetch);
+        else           return new ApiError(fetch);
+    }
+
+    // When the app is first open this function will be called to 
+    const authGatewayLogin = async (credentials,returnError=false)=>{
+        try{
+            const fetchConfig = {
+                method:'post',
+                slug:'login',
+                data:credentials,
+                headers:{
+                  "Content-Type": "multipart/form-data",
+                }
             }
+
+            const fetch = await fetchApi(fetchConfig);
+            const data = fetch.response.data;
+
+            if(fetch.status == 200){
+                setAuthStatus(AuthStatus.VALID, data);
+                NotifierController.addNotification({
+                    title:'Berhasil',
+                    message:'Berhasil Login..',
+                    type:'Success',
+                });
+                return fetch;
+            } else {
+                throw new ApiError(fetch);
+            }
+
+        } catch(e) {
+            
+            let notifier = {
+                title:'Gagal',
+                message:'Terjadi gangguan..',
+                type:'Error',
+            }
+
+            if(e instanceof ApiError){
+                if(e.status >= 500 && e.status <= 511){
+                    setAuthStatus(AuthStatus.INVALID);
+                    notifier.message = 'Terjadi masalah pada server'
+                }
+
+                else if(e.status == 408){
+                    setAuthStatus(AuthStatus.INITIAL_ERROR);
+                    notifier.message = 'Terjadi masalah pada jaringan anda..'
+                }
+
+                else if(e.status == 401){
+                    setAuthStatus(AuthStatus.INVALID);
+                    notifier.message = 'Email atau password yang anda masukkan salah..'
+                }
+
+                else if(e.status >= 400 && e.status <= 404){
+                    setAuthStatus(AuthStatus.INVALID);
+                    notifier.message = 'Email atau password yang anda masukkan salah..'
+                }
+
+                else { 
+                    setAuthStatus(AuthStatus.INVALID);
+                    notifier.message = e.response.message;
+                }
+            }
+
+            NotifierController.addNotification(notifier);
+
+            if(returnError) return e;
+            else            return console.error(e);
         }
+    }
+    const authGatewayRegister = async (credentials,returnError=false)=>{
+        try{
+            const fetchConfig = {
+                method:'post',
+                slug:'register',
+                data:credentials,
+                headers:{
+                  "Content-Type": "multipart/form-data",
+                }
+            }
 
-        else {
-            return obj;
+            const fetch = await fetchApi(fetchConfig);
+            const data = fetch.response.data;
+
+            if(fetch.status == 200){
+                setAuthStatus(AuthStatus.VALID, data);
+                NotifierController.addNotification({
+                    title:'Berhasil',
+                    message:'Berhasil Login..',
+                    type:'Success',
+                });
+                return fetch;
+            } else {
+                throw new ApiError(fetch);
+            }
+        } catch(e) {
+            let notifier = {
+                title:'Gagal',
+                message:'Terjadi gangguan..',
+                type:'Error',
+            }
+
+            if(e instanceof ApiError){
+                if(e.status >= 500 && e.status <= 511){
+                    setAuthStatus(AuthStatus.INVALID);
+                    notifier.message = 'Terjadi masalah pada server'
+                }
+
+                else if(e.status == 408){
+                    setAuthStatus(AuthStatus.INITIAL_ERROR);
+                    notifier.message = 'Terjadi masalah pada jaringan anda..'
+                }
+
+                else if(e.status == 401){
+                    setAuthStatus(AuthStatus.INVALID);
+                    notifier.message = 'Email atau password yang anda masukkan salah..'
+                }
+
+                else if(e.status >= 400 && e.status <= 404){
+                    setAuthStatus(AuthStatus.INVALID);
+                    notifier.message = 'Email atau password yang anda masukkan salah..'
+                }
+
+                else if(e.status == 422){
+                    setAuthStatus(AuthStatus.INVALID);
+                    notifier.message = e.response.data.message;
+                }
+
+                else {
+                    setAuthStatus(AuthStatus.INVALID);
+                    notifier.message = e.response.data.message;
+                }
+            }
+
+            NotifierController.addNotification(notifier);
+
+            if(returnError) return e;
+            else            return console.error(e);
         }
-        
-    };
+    }
+    const authGateway = async (returnError=false) => {
+        try{
+            let jwt = getJWT();
+            if(jwt == undefined) return setAuthStatus(AuthStatus.INVALID);
 
-    const authGateway = async () => {
-        var result = await isTokenAuthenticated();
+            let isValid = await isTokenAuthenticated(jwt.token,true);
+            if(!isValid) {
+                const fetchRefresh = await refreshJWT(jwt.token);
+                if(fetchRefresh.status == 200) jwt = fetchRefresh.response.data;
+                else if(fetchRefresh.status == 401) return setAuthStatus(AuthStatus.INVALID);
+                else                                throw fetchRefresh;
+            }
 
-        if(result == true)  return AuthController.setStatus(AuthStatus.VALID);
-        if(result == false) return AuthController.setStatus(AuthStatus.INVALID);
-        if(result !== false && result !== true) {
-            AuthController.setStatus(AuthStatus.INITIAL_ERROR);
-            NotifierController.addNotification({
-                type:'ERROR',
-                title:'GAGAL AUTENTIKASI',
-                message:result.response.data.message,
-            })
+            const fetchUser = await fetchDataUser(jwt.token,true);
+            const dataUser = fetchUser.response.data;
+
+            const authData = {
+                jwt:jwt,
+                user:dataUser,
+            }
+
+            if(fetchUser.status >= 200 && fetchUser.status <= 204) {
+                return setAuthStatus(AuthStatus.VALID, authData);
+            } else {
+                return setAuthStatus(AuthStatus.INVALID);
+            }
+        } catch (e){
+            let notifier = {
+                title:'Gagal',
+                message:'Terjadi gangguan..',
+                type:'Error',
+            }
+
+            if(e instanceof ApiError){
+                if(e.status >= 500 && e.status <= 511){
+                    setAuthStatus(AuthStatus.INVALID);
+                    notifier.message = 'Terjadi masalah pada server..'
+                }
+
+                if(e.status == 408){
+                    setAuthStatus(AuthStatus.INITIAL_ERROR);
+                    notifier.message = 'Terjadi masalah pada jaringan anda..'
+                }
+
+                if(e.status >= 400 && e.status <= 404){
+                    setAuthStatus(AuthStatus.INVALID);
+                }
+            }
+
+            NotifierController.addNotification(notifier);
+            setAuthStatus(AuthStatus.INVALID);
+
+            if(returnError) return e;
+            else            return console.error(e);
         }
     }
 
     return {
-        checkToken:checkToken,
-        refreshToken:refreshToken,
-        getAuthToken:getAuthToken,
+        authGateway:authGateway,
+        authGatewayLogin:authGatewayLogin,
+        authGatewayRegister:authGatewayRegister,
+        fetchDataUser:fetchDataUser,
+        fetchAuthApi:fetchAuthApi,
+        refreshJWT:refreshJWT,
         isTokenAuthenticated:isTokenAuthenticated,
-        authGateway:authGateway
-    };
+        setJWT:setJWT,
+        setUser:setUser,
+        clearJWT:clearJWT,
+        clearUser:clearUser,
+        clear:clear,
+        getJWT:getJWT,
+    }
 }
-

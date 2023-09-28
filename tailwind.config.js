@@ -6,6 +6,9 @@ module.exports = {
   theme: {
     colors:{
       'white':'#ffffff',
+      'blue-light':{
+        100:'rgba(163, 189, 235, 0.50)',
+      },
       'blue':{
         100:'#f1f8ff',
         200:'#a3bdeb',
@@ -52,7 +55,7 @@ module.exports = {
       base: '1rem',
       lg:'1.1rem',
       xl: '1.25rem',
-      '2xl': '1.563rem',
+      '2xl': '1.363rem',
       '3xl': '1.953rem',
       '4xl': '2.441rem',
       '5xl': '3.052rem',

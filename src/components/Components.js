@@ -2,9 +2,9 @@ import React from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Iconsax, AnimateMotions, TimingMotions } from "../utils";
 
-export function Icon({type='',iconUrl='',className=''}){
+export function Icon({type='',iconUrl='',className='',onClick}){
     let icon = { backgroundImage: 'Url(' + iconUrl + ')' };
-    return ( <div style={icon} className={className + ' ' + 'bg-cover'}></div> );
+    return ( <div onClick={onClick} style={icon} className={className + ' ' + 'bg-cover'}></div> );
 }
 
 export function CircleDecoration({className='',variant='blue'}){
@@ -25,11 +25,11 @@ export function LoadingContainer({className='',children, animate={}}){
     )
 }
 
-export function Notification({title='',message='', className='',type='SUCCESS',animate={},onClose}){
+export function Notification({title='',message='', className='',type='Success',animate={},onClose}){
     let containerClass = `relative border-b-2 px-5 py-4 overflow-hidden items-center flex rounded-md gap-2`;
 
-    if(type == 'ERROR')   var typeClass = `bg-red-400 border-red-500`;
-    if(type == 'SUCCESS') var typeClass = `bg-blue-400 border-blue-dark-300`;
+    if(type == 'Error')   var typeClass = `bg-red-400 border-red-500`;
+    if(type == 'Success') var typeClass = `bg-blue-400 border-blue-dark-300`;
 
     return ( 
         <div className={className}>

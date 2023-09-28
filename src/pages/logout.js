@@ -22,12 +22,13 @@ export default function LogoutPage() {
         if (action) return;
         setAction(true);
 
-        const token = AuthService.getAuthToken();
+        const jwt = AuthService.getJWT();
+        
         const config = {
             method: 'post',
             url: process.env.BACKEND_URL + 'api/logout',
             headers: {
-                Authorization: 'Bearer ' + token,
+                Authorization: 'Bearer ' + jwt.token,
                 Accept: 'application/json',
             }
         }
@@ -43,8 +44,7 @@ export default function LogoutPage() {
             });
 
         if (error == false) {
-            window.localStorage.removeItem('JWT_AUTH');
-            AuthController.clearAuth();
+            AuthService.clear();
             AuthController.setStatus(AuthStatus.INVALID);
         }
     }

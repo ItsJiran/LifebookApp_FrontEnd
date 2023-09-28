@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 // ----------------
 //     ASSETS
 // ----------------
@@ -11,6 +13,77 @@ export const FilePath = {
         'bold':iconsax + 'bold/',
     },
 }
+
+// -----------------------------
+//    DATE AND TIME FORMATTER
+// -----------------------------
+export const MonthTable = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'Mei',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'Desember',   
+]
+export const SortMonthTable = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "Mei",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Des",
+]
+export const DecodeDateTime = (raw_date_time) => {
+    // expected raw_date : yyyy-mm-dd T hh:mm:ss
+    var split = raw_date_time.split('T');
+    return {
+        date:FormatDate(split[0]),
+        time:FormatTime(split[1]),
+    }
+} 
+export const FormatDate = (raw_date) => {
+    // expected raw_date : yyyy-mm-dd
+    var split = raw_date.split('-');
+    return {
+        year:split[0],
+        month:split[1],
+        day:split[2],
+    }
+}
+export const FormatTime = (raw_time) => {
+    // expected raw_time : hh:mm:ss
+    var split = raw_time.split(':');
+    return {
+        hour:split[0],
+        minute:split[1],
+        second:split[2],
+    }
+}
+export const getMonthName = (index,isSort=false)=>{
+    if(isSort) return SortMonthTable[index-1];
+    else       return MonthTable[index-1];
+}
+
+//create your forceUpdate hook
+export function useForceUpdate(){
+    const [value, setValue] = useState(0); // integer state
+    return () => setValue(value => value + 1); // update state to force render
+    // A function that increment 👆🏻 the previous state like here 
+    // is better than directly setting `setValue(value + 1)`
+}
+
 
 // ----------------
 //    ANIMATION

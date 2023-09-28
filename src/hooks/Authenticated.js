@@ -8,12 +8,19 @@ export const AuthStatus = {
     INVALID : 'INVALID',
 }
 export const AuthAction = {
-    SET_JWT : 'SET_JWT',
-    SET_USER : 'SET_USER',
-    SET_STATUS : 'SET_STATUS',
-    CLEAR_JWT : 'CLEAR_JWT',
-    CLEAR_USER : 'CLEAR_USER',
-    CLEAR : 'CLEAR',
+    status:{
+        clear:'status_clear',
+        set:'status_set',
+    },
+    jwt:{
+        clear:'jwt_clear',
+        set:'jwt_set',
+    },
+    user:{
+        clear:'user_clear',
+        set:'user_set',
+    },
+    clear:'clear',
 }
 export const AuthContext = createContext(null);
 export const AuthInitial = {
@@ -24,25 +31,37 @@ export const AuthInitial = {
 
 export const AuthReducer = (state = AuthInitial, action) => {
     switch (action.type) {
-        case AuthAction.SET_STATUS:
+        case AuthAction.status.set:
             return {
                 ...state,
                 status:action.payload.content,
             };
 
-        case AuthAction.SET_JWT:
+        case AuthAction.jwt.set:
             return {
                 ...state,
                 jwt:action.payload.content,
             };
 
-        case AuthAction.SET_USER:
+        case AuthAction.user.set:
             return {
                 ...state,
                 user:action.payload.content,
             };
 
-        case AuthAction.CLEAR:
+        case AuthAction.jwt.clear:
+            return {
+                ...state,
+                jwt:AuthInitial.jwt,
+            };
+
+        case AuthAction.user.clear:
+            return {
+                ...state,
+                user:AuthInitial.user,
+            };
+
+        case AuthAction.clear:
             return AuthInitial;
             
         default:

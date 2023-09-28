@@ -13,7 +13,7 @@ import { AnimateMotions, TimingMotions } from "../utils";
 import { Loading } from "../components/Components";
 import { AuthStatus } from "../hooks/Authenticated";
 
-import { useAuthController } from "../hooks_utils/AuthUtils";
+import { useAuthController, useAuthService } from "../hooks_utils/AuthUtils";
 import { useNotifierController } from "../hooks_utils/NotifierUtils";
 
 export default function LoginPage() {
@@ -22,8 +22,10 @@ export default function LoginPage() {
   // ========================================================================================================
 
   const [action, setAction] = React.useState(false);
+
   const NotifierController = useNotifierController();
   const AuthController = useAuthController();
+  const AuthService = useAuthService();
 
   const validator = yup.object().shape({
     email: yup.string().email('Email is not valid').required(),
@@ -63,77 +65,19 @@ export default function LoginPage() {
     setAction(action);
     NotifierController.toggleLoading(action);
   }
-  function handleApiSuccess(e) {
-    const status = e.status;
-    const jwt_data = e.data
-
-    let notif_title = '';
-    let notif_message = '';
-
-    if (status == 200) {
-      AuthController.setJWT(jwt_data);
-      AuthController.setStatus(AuthStatus.VALID);
-
-      window.localStorage.setItem('AUTH_JWT', JSON.stringify(jwt_data));
-
-      notif_title = 'BERHASIL';
-      notif_message = 'Anda Berhasil Login..';
-    }
-
-    NotifierController.addNotification({
-      title: notif_title,
-      message: notif_message,
-      type: 'SUCCESS',
-    })
-
-    window.sessionStorage.clear('inputsLogin');
-    window.sessionStorage.clear('inputsRegister');
-  }
-  function handleApiError(e) {
-    let notif_title = '';
-    let notif_message = '';
-
-    if (e.code !== 'ERR_NETWORK') {
-      const res = e.response;
-      const status = res.status;
-
-      // Unauthorized
-      if (status == 401) {
-        notif_title = 'GAGAL'
-        notif_message = 'Email atau password yang anda masukkan salah..';
-      } else {
-        notif_title = 'GAGAL' + ' ' + status;
-        notif_message = res.data.mesage + '\n' + `Error Code : ` + status;
-      }
-    } else {
-      notif_title = 'GAGAL'
-      notif_message = 'Terjadi masalah dengan jaringan..';
-    }
-
-    NotifierController.addNotification({
-      title: notif_title,
-      message: notif_message,
-      type: 'ERROR',
-    })
-  }
-
-  async function formSubmit(e) {
+  async function formSubmit(credentials) {
     // PREVENT MULTIPLE FORM SUBMIT
     if (!action) toggleAction(true);
     else return console.error('Login Form Already Submitted !!');
 
-    const data = {
-      email: e.email,
-      password: e.password,
-    }
-    const header = {
-      "Content-Type": "multipart/form-data",
-      "Accept": "application/json",
-    }
+    const result = await AuthService.authGatewayLogin(credentials, true);
+    
+    console.log(result);
 
-    await axios.post(process.env.BACKEND_URL + 'api/login', data, header)
-      .then(handleApiSuccess)
-      .catch(handleApiError)
+    if(result.status == 200){
+      window.sessionStorage.removeItem('inputsLogin');
+      window.sessionStorage.removeItem('inputsRegister');
+    }
 
     toggleAction(false);
   }

@@ -59,7 +59,7 @@ export function Input({ register, placeholder, type, containerClass = '', classN
         <AnimatePresence mode='wait'>
           { 
             isError && isFocus ? 
-              <motion.div className="w-full h-fit px-4 py-3 bg-red-400 rounded-md border-b-2 border-red-500 text-sm text-white"
+              <motion.div className="w-full h-fit px-4 py-3 bg-red-400 rounded-md border-b-2 border-red-500 text-1sm text-white"
                 key='error-message'
                 initial={{opacity:0, y:'-5'}}
                 animate={{opacity:1, y:'0'}}

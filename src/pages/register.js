@@ -12,8 +12,7 @@ import { Button } from "../components/ui/Buttons";
 
 import { Iconsax, AnimateStyle, AnimateMotions, TimingMotions } from "../utils";
 import { useNotifierController } from "../hooks_utils/NotifierUtils";
-import { useAuthController } from "../hooks_utils/AuthUtils";
-import { AuthStatus } from "../hooks/Authenticated";
+import { useAuthController, useAuthService } from "../hooks_utils/AuthUtils";
 
 export default function RegisterPage() {
     // ========================================================================================================
@@ -22,6 +21,7 @@ export default function RegisterPage() {
     const [action, setAction] = React.useState(false);
     const NotifierController = useNotifierController();
     const AuthController = useAuthController();
+    const AuthService = useAuthService();
 
     const validator = yup.object().shape({
         name: yup.string().min(6, "The minimum length is 6..").required(),
@@ -77,86 +77,23 @@ export default function RegisterPage() {
         setAction(action);
         NotifierController.toggleLoading(action);
     }
-    function handleApiSuccess(e) {
-        let notif_title = '';
-        let notif_message = '';
-
-        const status = e.status;
-        const jwt_data = e.data;
-
-        if (status == 200) {
-            AuthController.setJWT(jwt_data);
-            AuthController.setStatus(AuthStatus.VALID);
-
-            window.localStorage.setItem('AUTH_JWT', JSON.stringify(jwt_data));
-
-            notif_title = 'BERHASIL';
-            notif_message = 'Anda Berhasil Register..';
-        }
-
-        NotifierController.addNotification({
-            title: notif_title,
-            message: notif_message,
-            type: 'SUCCESS',
-        })
-
-        window.sessionStorage.clear("inputsLogin");
-        window.sessionStorage.clear("inputsRegister");
-    }
-    function handleApiError(e){
-        let notif_title = '';
-        let notif_message = '';
-    
-        if (e.code !== 'ERR_NETWORK') {
-          const res = e.response;
-          const status = res.status;
-    
-          // Unauthorized
-          if (status == 401) {
-            notif_title = 'GAGAL'
-            notif_message = 'Email atau password yang anda masukkan salah..';
-          } else if (status == 422) {
-            if(res.data.errors !== undefined){
-                for(let key in res.data.errors){
-                    setError(key,{message:res.data.errors[key]});
-                }
-            }
-            
-            notif_title = 'GAGAL'
-            notif_message = 'Kelasahan Input..';
-          } else {
-            notif_title = 'GAGAL' + ' ' + status;
-            notif_message = res.data.mesage + '\n' + `Error Code : ` + status;
-          }
-        } else {
-          notif_title = 'GAGAL'
-          notif_message = 'Terjadi masalah dengan jaringan..';
-        }
-        
-        NotifierController.addNotification({
-            title: notif_title,
-            message: notif_message,
-            type: 'ERROR',
-        })
-    }
-    async function formSubmit(e) {
+    async function formSubmit(credentials) {
         // PREVENT MULTIPLE FORM SUBMIT
         if (!action) toggleAction(true);
         else return console.error("Register Form Already Submitted !!");
 
-        const data = {
-            name:e.name,
-            email:e.email,
-            password:e.password,
-            repassword:e.repassword,
-        };
-        const header = {
-            "Content-Type": "multipart/form-data",
-            "Accept": "application/json",
-        };
-        await axios.post(process.env.BACKEND_URL + 'api/register', data, header)
-            .then(handleApiSuccess)
-            .catch(handleApiError)
+        const result = await AuthService.authGatewayRegister(credentials, true);
+        
+        if(result.status == 200){
+            window.sessionStorage.removeItem('inputsLogin');
+            window.sessionStorage.removeItem('inputsRegister');
+        }
+
+        if(result.response.data.errors !== undefined){
+            for(let key in result.response.data.errors){
+                setError(key,{message:result.response.data.errors[key]});
+            }
+        }
 
         toggleAction(false);
     }
