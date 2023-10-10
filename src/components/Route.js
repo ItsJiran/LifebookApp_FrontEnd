@@ -63,4 +63,5 @@ export const ProtectedRoute = ({redirectPath = '/login' }) => {
 
     return <Outlet/>
   };
+
   

@@ -1,33 +1,37 @@
 import React, { useState } from "react";
-import { useLocation, Route, Routes, useMatches, Link } from "react-router-dom";
+import { useLocation, Route, Routes, useMatches, Link, Navigate, useNavigate } from "react-router-dom";
 
 import { AnimatePresence, motion } from "framer-motion";
 import { Iconsax, TimingMotions, AnimateMotions, DecodeDateTime, getMonthName, useForceUpdate } from "../utils";
-import { fetchApi } from "../utils/ApiUtils";
+import { fetchApi, fetchAuthWrap, useApiService } from "../hooks_utils/ApiUtils";
 
 import { CircleDecoration, Icon } from "../components/Components";
 import { LayerMain } from "../components/Layers";
 
 import { useNotifierController } from "../hooks_utils/NotifierUtils";
 import { useAuthController } from "../hooks_utils/AuthUtils";
-import { useAppController } from "../hooks_utils/AppUtils";
+import { useAppService } from "../hooks_utils/AppUtils";
+import { useConfirmerService } from "../hooks_utils/NavigateUtils";
+import { AxiosError } from "axios";
 
 export default function IndexPage() {
   // ========================================================================================================
   // ---------------------------------------- STATE AND VARIABLES -------------------------------------------
   // ========================================================================================================
   const location = useLocation();
+  const navigate = useNavigate();
 
-  const AppController = useAppController()
+  // -- Service And Controller
   const NotifierController = useNotifierController();
   const AuthController = useAuthController();
+  
+  const AppService = useAppService();
+  const ApiService = useApiService();
 
+  // -- Variable And State
   const [ApiMaterials, setApiMaterials] = useState({
     loading:false,
-    error:{
-      status:false,
-      data:undefined,
-    },
+    error:false,
     data:[],
   });
 
@@ -38,68 +42,59 @@ export default function IndexPage() {
     fetchMaterials();
   },[]);
 
-
   // ========================================================================================================
   // -------------------------------------------- FUNCTIONS -------------------------------------------------
   // ========================================================================================================
-  const click = async () => {
-    const test = [...ApiMaterials.data];
-    
-    let newdata = {...ApiMaterials.data[0]};
-    newdata.id = test.length + 1;
-
-    test.push(newdata);
-    setApiMaterials({...ApiMaterials, data:test})
-  }
   const fetchMaterials = async () => {
-    setApiMaterials({
-      loading:true,
-      error:{
-        status:false,
-        data:undefined,
-      },
-      data:[],
-    });
-    
-    const jwt = AuthController.getJWT();
+    setApiMaterials({...ApiMaterials,loading:true});
 
-    const config = {
-      method:'get',
-      slug:'materials',
-      headers:{
-        Authorization:'Bearer ' + jwt.token,
+    // Use Try And Catch So If There's an Error on the App Can Still Be Run
+    try{
+      var fetch = await ApiService.fetchAuth({slug:'materials',method:'get'});
+
+      // Generate Notification Title And Message
+      var title = ApiService.generateApiTitle(fetch);
+      var msg = ApiService.generateApiMessage(fetch);
+
+      // --- Handling Success
+      if(fetch.status == 200){
+        setApiMaterials({loading:false, error:false, data:fetch.response.data });  
       }
-    }
 
-    const fetch = await fetchApi(config);
-    const response = fetch.response;
+      // --- Handle Client Request Failed
+      else if (fetch.status !== 200 || fetch instanceof Axios){
+        if(fetch instanceof AxiosError) console.error(fetch);
 
-    if(fetch.status == 200){   
-      setApiMaterials({
-        error:{
-          status:false,
-          data:undefined,
-        },
-        data:fetch.response.data,
-        loading:false,
-      });      
-  
-    } else if (fetch.status >= 400){
-      setApiMaterials({
-        error:{
-          status:true,
-          data:fetch.response.data,
-        },
-        data:[],
-        loading:false,
-      });
+        NotifierController.addNotification({
+          title:title,
+          message:msg,
+          type:'Error',
+        });
+
+        setApiMaterials({loading:false, error:true, data:[]});  
+      }
+
+    } catch (e) {
+      setApiMaterials({loading:false, error:true, data:[]});
+      if(e instanceof Error || ApiService.isReturnError(e)){
+        console.error('ERROR_INSTANCE',e);
+        if(e.isNotifier){
+            NotifierController.addNotification({
+                title:e.title ? e.title : 'Terjadi Kesalahan Sistem',
+                message:e.message ? e.message : 'Terjadi kesalahan pada sistem yang sedang berjalan..',
+                type:'Error',
+            })                    
+        }
+      } else {
+          console.error(e);
+      }
     }
   }
 
   return (
     <>
       {/* ================== HEADER ==================== */}
-      <div className="h-[40px] w-full px-2 py-2 box-border flex mt-2 justify-between">
+      <div className="h-[40px] w-full px-3 py-2 box-border flex mt-2 justify-between">
         <div className="h-fit w-fit">
           
         </div>
@@ -119,7 +114,7 @@ export default function IndexPage() {
         <div id='WELCOME_HERO' className="h-fit w-full px-4 py-4 rounded-md min-h-[120px] bg-blue-400 relative mb-3">
 
           <CircleDecoration className="left-3 top-0 h-5 w-5 absolute" variant="white"/>
-          <img src='./public/assets/img/index-illus-1.png' className="absolute right-0 h-full w-[180px] top-0"/>
+          <img src='/public/assets/img/index-illus-1.png' className="absolute right-0 h-full w-[180px] top-0"/>
 
           <label className="text-white text-2sm block font-semibold">Selamat Datang Di</label>
           <h1 className="text-white text-xl font-bold mr-[70px] mb-3 leading-6 relative">My Own Life Book Digital</h1>
@@ -138,7 +133,7 @@ export default function IndexPage() {
             <div className="">
               
              {  AuthController.getUser().role == 'admin' ?
-                <Icon onClick={()=>{}} className="h-6 w-6 filter-blue-400 hover:filter-blue-dark-300" iconUrl={Iconsax.bold['add-circle.svg']}/>
+                <Icon onClick={async ()=>{navigate('/materials/add',{replace:true})}} className="h-6 w-6 filter-blue-400 hover:filter-blue-dark-300" iconUrl={Iconsax.bold['add-circle.svg']}/>
                 : <></>
              } 
 
@@ -164,16 +159,16 @@ export default function IndexPage() {
                 : '' }
                 {/* ============= FETCH DATA ============= */}
                 {
-                  !ApiMaterials.loading && ApiMaterials.data.length > 0 ?
+                  !ApiMaterials.loading && ApiMaterials.data.length > 0 && !ApiMaterials.error ?
                     <>
                       {ApiMaterials.data.map((data)=>{ 
-                        const dateTime = DecodeDateTime(data.created_at);               
+                        const dateTime = DecodeDateTime(data.date,' ');               
                         return <motion.div key={data.id} {...{...AnimateMotions['fade-in'],...TimingMotions['ease-0.5']}} className="bg-white w-full rounded-md border-b-2 border-blue-200 h-fit flex px-2 py-2 gap-2">
-                          <Link className="h-[30px] w-[30px] rounded-md">
+                          <Link className="h-[30px] w-[30px] rounded-md" to={'/materials/view/' + data.id} replace>
                             <Icon className="h-full w-full filter-blue-400" iconUrl={Iconsax.bold['book-square.svg']}/>
                           </Link>
                           <div className="flex-grow flex flex-col pt-1 pb-1">
-                            <Link className="w-full h-fit mb-[2px]" replace><h2 className="text-1sm text-blue-dark-300 font-semibold tracking-wide">{data.title}</h2></Link>
+                            <Link className="w-full h-fit mb-[2px]" to={'/materials/view/' + data.id} replace><h2 className="text-1sm text-blue-dark-300 font-semibold tracking-wide">{data.title}</h2></Link>
                             <div className="text-2sm text-blue-dark-100 tracking-wide flex gap-1 font-medium">
                               <div className="flex gap-1 align-center items-center">
                                 <Icon className="w-[13px] h-[13px] filter-blue-dark-100" iconUrl={Iconsax.bold['clock.svg']}/>
@@ -189,7 +184,7 @@ export default function IndexPage() {
                   : ''
                 }
                 {
-                  !ApiMaterials.loading && ApiMaterials.data.length == 0 && !ApiMaterials.error.status ? 
+                  !ApiMaterials.loading && ApiMaterials.data.length == 0 && !ApiMaterials.error ? 
                     <>
                       <motion.div key='no-content' {...{...AnimateMotions['fade-in'],...TimingMotions['ease-0.5']}} className="flex flex-col items-center text-center w-fit mx-auto h-fit flex px-2 py-2 text-1sm text-blue-dark-200 tracking-wide">
                         <h2 className="font-semibold">Tidak Ditemukan</h2>
@@ -201,7 +196,7 @@ export default function IndexPage() {
                 }
                 {/* ============= ERROR FETCH DATA ============= */}
                 {
-                  !ApiMaterials.loading && ApiMaterials.error.status ? 
+                  !ApiMaterials.loading && ApiMaterials.error ? 
                     <>
                       <motion.div key='error-fetch' {...{...AnimateMotions['fade-in'],...TimingMotions['ease-0.5']}} className="flex flex-col items-center text-center w-fit mx-auto h-fit flex px-2 py-2 text-1sm text-blue-dark-200 tracking-wide">
                         <h2 className="font-semibold">Terjadi Kesalahan</h2>

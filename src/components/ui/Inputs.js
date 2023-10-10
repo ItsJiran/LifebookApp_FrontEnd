@@ -23,7 +23,7 @@ before:h-1/2 before:w-1/2 :hover:before:w-full :hover:before:h-full before:round
 let ERROR_MESSAGE_CONTAINER = `relative w-full h-fit px-4 py-3 bg-red-400 rounded-md border-b-2 border-red-500 text-sm text-white`;
 let ERROR_MESSAGE_ARROW     = `absolute right-1 -top-4 h-6 w-6 filter-red-400`;
 
-export function Input({ register, placeholder, type, containerClass = '', className = '', formState }) {
+export const Input = React.forwardRef( ({ register, placeholder, type, containerClass = '', className = '', formState },ref) => {
   // ========================================================================================================
   // ---------------------------------------- STATE AND VARIABLES -------------------------------------------
   // ========================================================================================================
@@ -46,8 +46,7 @@ export function Input({ register, placeholder, type, containerClass = '', classN
   // ========================================================================================================
   return (
     <div className={CONTAINER_CLASS + ' ' + containerClass}>
-      <input {...register} onFocus={trueFocus} onBlur={falseFocus} 
-            type={type} placeholder={placeholder} className={inputClass} />
+      <input {...register} onFocus={trueFocus} onBlur={falseFocus} type={type} placeholder={placeholder} className={inputClass} />
 
       {/* NOTIF LABEL */}
       <div className="absolute gap-1.5 box-border h-[46px] top-0 right-0 w-fit px-2 items-center content-center flex flex-row-reverse">
@@ -75,9 +74,9 @@ export function Input({ register, placeholder, type, containerClass = '', classN
       </div>
     </div>
   );    
-}
+})
 
-export function InputPassword({ register, placeholder, containerClass = '', className = '', formState }) {
+export function InputPassword({ register, placeholder, containerClass = '', className = '', formState, onClick }) {
   // ========================================================================================================
   // ---------------------------------------- STATE AND VARIABLES -------------------------------------------
   // ========================================================================================================
@@ -104,7 +103,7 @@ export function InputPassword({ register, placeholder, containerClass = '', clas
   // ========================================================================================================
   return (
     <div className={CONTAINER_CLASS + ' ' + containerClass}>
-      <input {...register} onFocus={trueFocus} onBlur={falseFocus} type={shownPassword ? 'text' : 'password' } placeholder={placeholder} className={inputClass} />
+      <input {...register} onClick={onClick} onFocus={trueFocus} onBlur={falseFocus} type={shownPassword ? 'text' : 'password' } placeholder={placeholder} className={inputClass} />
 
       {/* NOTIF LABEL */}
       <div className="absolute gap-1.5 box-border h-[46px] top-0 right-0 w-fit px-2 items-center content-center flex flex-row-reverse">

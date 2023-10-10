@@ -1,5 +1,4 @@
-import React, { useEffect } from "react";
-import axios from "axios";
+import React from "react";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { Link } from "react-router-dom";
@@ -12,7 +11,8 @@ import { Button } from "../components/ui/Buttons";
 
 import { Iconsax, AnimateStyle, AnimateMotions, TimingMotions } from "../utils";
 import { useNotifierController } from "../hooks_utils/NotifierUtils";
-import { useAuthController, useAuthService } from "../hooks_utils/AuthUtils";
+import { useAuthService } from "../hooks_utils/AuthUtils";
+import { useApiService } from "../hooks_utils/ApiUtils";
 
 export default function RegisterPage() {
     // ========================================================================================================
@@ -20,8 +20,9 @@ export default function RegisterPage() {
     // ========================================================================================================
     const [action, setAction] = React.useState(false);
     const NotifierController = useNotifierController();
-    const AuthController = useAuthController();
+    
     const AuthService = useAuthService();
+    const ApiService = useApiService();
 
     const validator = yup.object().shape({
         name: yup.string().min(6, "The minimum length is 6..").required(),
@@ -82,16 +83,59 @@ export default function RegisterPage() {
         if (!action) toggleAction(true);
         else return console.error("Register Form Already Submitted !!");
 
-        const result = await AuthService.authGatewayRegister(credentials, true);
-        
-        if(result.status == 200){
-            window.sessionStorage.removeItem('inputsLogin');
-            window.sessionStorage.removeItem('inputsRegister');
-        }
+        // Use Try And Catch So If There's an Error on the App Can Still Be Run
+        try{
+            const fetch = await ApiService.fetchApi({slug:'register',method:'post',data:credentials});    
 
-        if(result.response.data.errors !== undefined){
-            for(let key in result.response.data.errors){
-                setError(key,{message:result.response.data.errors[key]});
+            // Generate Notification Title And Message
+            var title = ApiService.generateApiTitle(fetch);
+            var msg = ApiService.generateApiMessage(fetch);
+
+            // ---  Handle Success
+            if(fetch.status == 200){
+                // from the backend will return fetch.response.data = {user:etc,jwt:etc};
+                AuthService.setAuthStatus(AuthService.authStatus().VALID, fetch.response.data)
+
+                NotifierController.addNotification({
+                    title:title,
+                    message:msg,
+                    type:'Success',
+                })
+
+                // removing cache
+                window.sessionStorage.removeItem('inputsLogin');
+                window.sessionStorage.removeItem('inputsRegister');
+            }
+
+            // --- Handle Client Request Failed
+            else if (fetch.status !== 200 || fetch instanceof AxiosError){
+                if(ApiService.isAxiosError(fetch)) console.error(fetch);
+
+                NotifierController.addNotification({
+                title:title,
+                message:msg,
+                type:'Error',
+                });
+
+                if(fetch.response && fetch.response.data.errors !== undefined){
+                    for(let key in fetch.response.data.errors){
+                        setError(key,{message:fetch.response.data.errors[key]});
+                    }
+                }
+            }
+
+        } catch(e) {
+            if(e instanceof Error || ApiService.isReturnError(e)){
+                console.error('ERROR_INSTANCE',e);
+                if(e.isNotifier){
+                    NotifierController.addNotification({
+                        title:e.title ? e.title : 'Terjadi Kesalahan Sistem',
+                        message:e.message ? e.message : 'Terjadi kesalahan pada sistem yang sedang berjalan..',
+                        type:'Error',
+                    })                    
+                }
+            } else {
+                console.error(e);
             }
         }
 

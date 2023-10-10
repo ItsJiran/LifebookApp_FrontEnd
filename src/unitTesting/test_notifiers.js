@@ -4,7 +4,7 @@ import { Button } from "../components/ui/Buttons";
 
 import { NotifierContext } from "../hooks/Notifier";
 import { useNotifierController } from "../hooks_utils/NotifierUtils";
-import { useConfirmerController } from "../hooks_utils/ConfirmerUtils";
+import { useConfirmerController } from "../hooks_utils/NavigateUtils";
 
 export function test_notifier_components(){
 

@@ -3,7 +3,7 @@ import { useContext  } from "react";
 import { set } from "react-hook-form";
 import { AuthContext, AuthStatus, AuthAction, AuthInitial } from "../hooks/Authenticated";
 import { useNotifierController } from "./NotifierUtils";
-import { fetchApi } from "../utils/ApiUtils";
+import { fetchApi } from "./ApiUtils";
 
 class ApiError{
 
@@ -96,17 +96,31 @@ export function useAuthService(){
     const NotifierController = useNotifierController();
     const AuthController = useAuthController();
 
+    const authStatus = () => AuthStatus;
+
+    const getUser = ()=>{
+        return AuthController.getUser();
+    }
     const getJWT = () => {
         // check if auth token jwt is exist on the state if exist then return the current token
         const jwt_state = AuthController.getJWT();
         const jwt_local = JSON.parse(window.localStorage.getItem('AUTH_JWT'));
 
         if(jwt_state !== jwt_local && jwt_local == undefined) return undefined;
-        if(jwt_state !== undefined && jwt_state.token !== undefined) return jwt_state;
+        if(jwt_state !== undefined && jwt_state.token !== undefined) {
+            if(jwt_local.updated >= jwt_state.updated && jwt_local.token !== jwt_state.token) {
+                setJWT(jwt_local);
+                return jwt_local;
+            } else {
+                setJWT(jwt_state);
+                return jwt_state;
+            }
+            
+        };
         
         if(jwt_local == undefined || jwt_local == null) return undefined;
         if(jwt_local.token !== undefined) {
-            AuthController.setJWT(jwt_local);
+            setJWT(jwt_local);
             return jwt_local;
         }
         
@@ -129,6 +143,7 @@ export function useAuthService(){
         window.localStorage.removeItem('AUTH_USER');
     }
     const setJWT = (jwt) => {
+        jwt.updated = Date.now();
         AuthController.setJWT(jwt);
         window.localStorage.setItem('AUTH_JWT',JSON.stringify(jwt));
     }
@@ -137,42 +152,49 @@ export function useAuthService(){
         window.localStorage.setItem('AUTH_USER',JSON.stringify(user));
     }
     const setAuthStatus = (status, data) => {
-        if(status == AuthStatus.INVALID){
-            clearJWT();
-            clearUser();   
-            AuthController.setStatus(status);
-        } 
 
-        if(status == AuthStatus.VALID){
-            checkAuthData(data,true);
-            setJWT(data.jwt);
-            setUser(data.user);   
-            AuthController.setStatus(status);
+        // if status want to be set to valid then data of jwt and user need to be 
+        // inserted
+        switch(status){
+            case authStatus().INVALID:
+                clearJWT();
+                clearUser();   
+                AuthController.setStatus(status);
+                break;
+            case authStatus().VALID:
+                checkAuthData(data,true);
+                setJWT(data.jwt);
+                setUser(data.user);   
+                AuthController.setStatus(status);
+                break;
+            case authStatus().INITIAL:
+                AuthController.setStatus(status);
+                break;
+            case authStatus().INITIAL_ERROR:
+                AuthController.setStatus(status);
+                break;
+            default:
+                throw Error('AuthStatus is not valid');
         }
-
-        if(status == AuthStatus.INITIAL){
-            AuthController.setStatus(status)
-        }
-
-        if(status == AuthStatus.INITIAL_ERROR){
-            AuthController.setStatus(status)
-        }
+       
     }
 
     const checkAuthData = (data, error=false) => {
         const jwt = data.jwt;
         const user = data.user;
         
-        if(jwt.token == undefined || jwt.type == undefined || jwt.expires_in == undefined) {
+        if(!checkAuthJwtData(jwt) || !checkAuthUserData(user) ){
             if(!error) return false;
-            throw Error('JWT in AuthData Is Not Valid');
-        }
-        if(user.id == undefined || user.email == undefined || user.role == undefined) {
-            if(!error) return false;
-            throw Error('User in AuthData Is Not Valid');
+            throw Error('JWT in AuthData Is Not Valid');            
         }
 
         return true;
+    }
+    const checkAuthJwtData = (jwt) => {
+        return jwt.token !== undefined && jwt.type !== undefined && jwt.expires_in !== undefined;
+    }
+    const checkAuthUserData = (user) => {
+        return user.id !== undefined && user.email !== undefined && user.role !== undefined;
     }
 
     // Fetch
@@ -227,7 +249,7 @@ export function useAuthService(){
         else           return new ApiError(fetch);
     }
 
-    // refresh token will return an oject that has status property and the api full data else than that then will be recognize as error
+    // this method will fetch refresh api link, that will response with token inside of it..
     const refreshJWT = async (token,throwError=false) => {
         const fetch = await fetchAuthApi('refresh','get',token);
 
@@ -236,145 +258,7 @@ export function useAuthService(){
         if(throwError) throw new ApiError(fetch);
         else           return new ApiError(fetch);
     }
-
-    // When the app is first open this function will be called to 
-    const authGatewayLogin = async (credentials,returnError=false)=>{
-        try{
-            const fetchConfig = {
-                method:'post',
-                slug:'login',
-                data:credentials,
-                headers:{
-                  "Content-Type": "multipart/form-data",
-                }
-            }
-
-            const fetch = await fetchApi(fetchConfig);
-            const data = fetch.response.data;
-
-            if(fetch.status == 200){
-                setAuthStatus(AuthStatus.VALID, data);
-                NotifierController.addNotification({
-                    title:'Berhasil',
-                    message:'Berhasil Login..',
-                    type:'Success',
-                });
-                return fetch;
-            } else {
-                throw new ApiError(fetch);
-            }
-
-        } catch(e) {
-            
-            let notifier = {
-                title:'Gagal',
-                message:'Terjadi gangguan..',
-                type:'Error',
-            }
-
-            if(e instanceof ApiError){
-                if(e.status >= 500 && e.status <= 511){
-                    setAuthStatus(AuthStatus.INVALID);
-                    notifier.message = 'Terjadi masalah pada server'
-                }
-
-                else if(e.status == 408){
-                    setAuthStatus(AuthStatus.INITIAL_ERROR);
-                    notifier.message = 'Terjadi masalah pada jaringan anda..'
-                }
-
-                else if(e.status == 401){
-                    setAuthStatus(AuthStatus.INVALID);
-                    notifier.message = 'Email atau password yang anda masukkan salah..'
-                }
-
-                else if(e.status >= 400 && e.status <= 404){
-                    setAuthStatus(AuthStatus.INVALID);
-                    notifier.message = 'Email atau password yang anda masukkan salah..'
-                }
-
-                else { 
-                    setAuthStatus(AuthStatus.INVALID);
-                    notifier.message = e.response.message;
-                }
-            }
-
-            NotifierController.addNotification(notifier);
-
-            if(returnError) return e;
-            else            return console.error(e);
-        }
-    }
-    const authGatewayRegister = async (credentials,returnError=false)=>{
-        try{
-            const fetchConfig = {
-                method:'post',
-                slug:'register',
-                data:credentials,
-                headers:{
-                  "Content-Type": "multipart/form-data",
-                }
-            }
-
-            const fetch = await fetchApi(fetchConfig);
-            const data = fetch.response.data;
-
-            if(fetch.status == 200){
-                setAuthStatus(AuthStatus.VALID, data);
-                NotifierController.addNotification({
-                    title:'Berhasil',
-                    message:'Berhasil Login..',
-                    type:'Success',
-                });
-                return fetch;
-            } else {
-                throw new ApiError(fetch);
-            }
-        } catch(e) {
-            let notifier = {
-                title:'Gagal',
-                message:'Terjadi gangguan..',
-                type:'Error',
-            }
-
-            if(e instanceof ApiError){
-                if(e.status >= 500 && e.status <= 511){
-                    setAuthStatus(AuthStatus.INVALID);
-                    notifier.message = 'Terjadi masalah pada server'
-                }
-
-                else if(e.status == 408){
-                    setAuthStatus(AuthStatus.INITIAL_ERROR);
-                    notifier.message = 'Terjadi masalah pada jaringan anda..'
-                }
-
-                else if(e.status == 401){
-                    setAuthStatus(AuthStatus.INVALID);
-                    notifier.message = 'Email atau password yang anda masukkan salah..'
-                }
-
-                else if(e.status >= 400 && e.status <= 404){
-                    setAuthStatus(AuthStatus.INVALID);
-                    notifier.message = 'Email atau password yang anda masukkan salah..'
-                }
-
-                else if(e.status == 422){
-                    setAuthStatus(AuthStatus.INVALID);
-                    notifier.message = e.response.data.message;
-                }
-
-                else {
-                    setAuthStatus(AuthStatus.INVALID);
-                    notifier.message = e.response.data.message;
-                }
-            }
-
-            NotifierController.addNotification(notifier);
-
-            if(returnError) return e;
-            else            return console.error(e);
-        }
-    }
+    
     const authGateway = async (returnError=false) => {
         try{
             let jwt = getJWT();
@@ -434,17 +318,21 @@ export function useAuthService(){
 
     return {
         authGateway:authGateway,
-        authGatewayLogin:authGatewayLogin,
-        authGatewayRegister:authGatewayRegister,
         fetchDataUser:fetchDataUser,
         fetchAuthApi:fetchAuthApi,
         refreshJWT:refreshJWT,
         isTokenAuthenticated:isTokenAuthenticated,
         setJWT:setJWT,
         setUser:setUser,
+        setAuthStatus:setAuthStatus,
         clearJWT:clearJWT,
         clearUser:clearUser,
         clear:clear,
         getJWT:getJWT,
+        getUser:getUser,
+        checkAuthData:checkAuthData,
+        checkAuthJwtData:checkAuthJwtData,
+        checkAuthUserData:checkAuthUserData,
+        authStatus:authStatus,
     }
 }

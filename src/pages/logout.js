@@ -1,16 +1,20 @@
 import React, { useCallback, useState, useContext } from "react";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 
 import { Loading } from "../components/Components";
 import { Button } from "../components/ui/Buttons";
 import { AuthStatus } from "../hooks/Authenticated";
 import { useAuthController, useAuthService } from "../hooks_utils/AuthUtils";
+import { useAppService } from "../hooks_utils/AppUtils";
+import { useApiService } from "../hooks_utils/ApiUtils";
 
 
 export default function LogoutPage() {
 
+    const AppService = useAppService();
     const AuthController = useAuthController();
     const AuthService = useAuthService();
+    const ApiService = useApiService();
 
     const [action, setAction] = useState(false);
     const [error, setError] = useState(false);
@@ -22,31 +26,39 @@ export default function LogoutPage() {
         if (action) return;
         setAction(true);
 
-        const jwt = AuthService.getJWT();
-        
-        const config = {
-            method: 'post',
-            url: process.env.BACKEND_URL + 'api/logout',
-            headers: {
-                Authorization: 'Bearer ' + jwt.token,
-                Accept: 'application/json',
+        try{
+            const fetch = await ApiService.fetchAuth({slug:'api/logout',method:'post'});
+
+            if(fetch.status == 200 || fetch.status == 401){
+                AuthService.clear();
+                AuthService.setAuthStatus(AuthStatus.INVALID);
+                AppService.resetApp();
+            } 
+            
+            else if(fetch.status >= 400) {
+                setError(true);
+            }
+    
+            else if(fetch instanceof AxiosError){
+                setError(true);
+            }
+
+        } catch (e) {
+            if(e instanceof Error || ApiService.isReturnError(e)){
+                console.error('ERROR_INSTANCE',e);
+                if(e.isNotifier){
+                    NotifierController.addNotification({
+                        title:e.title ? e.title : 'Terjadi Kesalahan Sistem',
+                        message:e.message ? e.message : 'Terjadi kesalahan pada sistem yang sedang berjalan..',
+                        type:'Error',
+                    })                    
+                }
+            } else {
+                console.error(e);
             }
         }
 
-        await axios(config)
-            .then((e) => {
-                setAction(false);
-                setError(false);
-            })
-            .catch((e) => {
-                setAction(false);
-                setError(true);
-            });
-
-        if (error == false) {
-            AuthService.clear();
-            AuthController.setStatus(AuthStatus.INVALID);
-        }
+        setAction(false);
     }
 
     React.useEffect(() => {

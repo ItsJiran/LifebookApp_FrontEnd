@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import React, { useContext, useReducer } from "react";
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
@@ -15,6 +15,7 @@ import { AuthStatus } from "../hooks/Authenticated";
 
 import { useAuthController, useAuthService } from "../hooks_utils/AuthUtils";
 import { useNotifierController } from "../hooks_utils/NotifierUtils";
+import { useApiService } from "../hooks_utils/ApiUtils";
 
 export default function LoginPage() {
   // ========================================================================================================
@@ -26,6 +27,7 @@ export default function LoginPage() {
   const NotifierController = useNotifierController();
   const AuthController = useAuthController();
   const AuthService = useAuthService();
+  const ApiService = useApiService();
 
   const validator = yup.object().shape({
     email: yup.string().email('Email is not valid').required(),
@@ -70,13 +72,61 @@ export default function LoginPage() {
     if (!action) toggleAction(true);
     else return console.error('Login Form Already Submitted !!');
 
-    const result = await AuthService.authGatewayLogin(credentials, true);
-    
-    console.log(result);
+    // Use Try And Catch So If There's an Error on the App Can Still Be Run
+    try{
+      const fetch = await ApiService.fetchApi({
+        slug:'login',
+        method:'post',
+        data:credentials,
+        headers:{
+          'Content-Type':'multipart/form-data',
+      }});
 
-    if(result.status == 200){
-      window.sessionStorage.removeItem('inputsLogin');
-      window.sessionStorage.removeItem('inputsRegister');
+      // Generate Notification Title And Message
+      var title = ApiService.generateApiTitle(fetch);
+      var msg = ApiService.generateApiMessage(fetch,(e)=>{
+        if(e.status == 401) return 'Email atau password yang anda masukkan salah..';
+      });
+
+      // ---  Handle Success
+      if(fetch.status == 200){
+        // from the backend will return fetch.response.data = {user:etc,jwt:etc};
+        AuthService.setAuthStatus(AuthStatus.VALID, fetch.response.data)
+        NotifierController.addNotification({
+          title:title,
+          message:msg,
+          type:'Success',
+        })
+
+        // removing cache
+        window.sessionStorage.removeItem('inputsLogin');
+        window.sessionStorage.removeItem('inputsRegister');
+      }
+
+      // --- Handle Client Request Failed
+      else if (fetch.status !== 200 || fetch instanceof AxiosError){
+        if(fetch instanceof AxiosError) console.error(fetch);
+
+        NotifierController.addNotification({
+          title:title,
+          message:msg,
+          type:'Error',
+        });
+      }
+
+    } catch(e) {
+      if(e instanceof Error || ApiService.isReturnError(e)){
+          console.error('ERROR_INSTANCE',e);
+          if(e.isNotifier){
+              NotifierController.addNotification({
+                  title:e.title ? e.title : 'Terjadi Kesalahan Sistem',
+                  message:e.message ? e.message : 'Terjadi kesalahan pada sistem yang sedang berjalan..',
+                  type:'Error',
+              })                    
+          }
+      } else {
+          console.error(e);
+      }
     }
 
     toggleAction(false);

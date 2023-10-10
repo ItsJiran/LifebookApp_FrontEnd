@@ -1,64 +1,34 @@
 import { AnimatePresence, motion } from "framer-motion";
 import React, {useContext} from "react";
-import { useLocation, Link, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { Icon } from "../components/Components";
-import { AppStatus } from "../hooks/App";
-import { useAppController } from "../hooks_utils/AppUtils";
-import { useConfirmerController } from "../hooks_utils/ConfirmerUtils";
-import { Iconsax, TimingMotions, AnimateMotions } from "../utils";
+import { useAppService } from "../hooks_utils/AppUtils";
+
+import { useNavigateService } from "../hooks_utils/NavigateUtils";
+import { Iconsax } from "../utils";
 
 export function NavigationBar(){
     const location = useLocation();
     const location_path = location.pathname.split('/')[1];
-    const navigate = useNavigate();
 
-    const AppController = useAppController();
-    const ConfirmerController = useConfirmerController();
+    const NavigateService = useNavigateService();
+    const AppService = useAppService();
 
-    async function redirectTo(url,content = undefined){
-        // get if current app navigate status let the user to redirect
-        let navigate_status = AppController.getNavigateStatus();
-        let canRedirect = false;
+    const confirm_logout_message = { title:'Logout', message:'Apakah anda yakin ingin keluar dari aplikasi?' };
+    const confirm_redirect_message = { title:'Konfirmasi', message:'Apakah anda yakin ingin pindah halaman?' };
 
-        if(content == undefined){
-            content = {
-                title:'Konfirmasi',
-                message:'Apakah anda yakin ingin pindah halaman?',
-            }
-        }
-
-        switch(navigate_status){
-            case AppStatus.navigate.validate:
-                canRedirect = await ConfirmerController.confirm(content);
-                break;
-            case AppStatus.navigate.initial:
-                canRedirect = true;
-                break;
-            default:
-                canRedirect = false;  
-                break;              
-        }
-
-        if(canRedirect)
-            navigate(url,{replace:true});
-    }
-    async function confirmLogout(){
-        var result = await ConfirmerController.confirm({
-            title:'Logout',
-            message:'Apakah anda yakin ingin keluar dari aplikasi?'
-        });
-
-        if(result) navigate('/logout',{replace:true});
-    }
+    let AppNavbarClass = '';
+    if( AppService.navbar.get.status() == AppService.navbar.status().show ) AppNavbarClass = 'bottom-[0px] shadow-top-nav';
+    else                                                                    AppNavbarClass = 'shadow-0';
 
     return (
-        <div className="w-full flex-initial h-fit px-4 py-3 bg-white relative shadow-top-nav">
+        <div style={{transition:'0.4s'}} className={"w-full flex-initial h-fit px-4 py-3 bg-white absolute transition -bottom-[70px]" + ' ' + AppNavbarClass}>
             <div className="flex gap-4 justify-between mx-auto align-center h-full w-full max-w-[320px] px-3">
                 <AnimatePresence mode='wait'>
                     {/* ================= HOME ====================== */}
-                    <div onClick={()=>{redirectTo('/dashboard')}} key='dashboard' className='flex flex-col justify-center'>
+                    <div onClick={()=>{NavigateService.redirectBasedApp('/dashboard',true,confirm_redirect_message)}} key='dashboard' className='flex flex-col justify-center cursor-pointer'>
                         
-                        { location_path == 'dashboard' || location_path == '' ? 
+                        { location_path == 'dashboard' || location_path == '' || location_path == 'materials' ? 
                         <div className="h-[28px] w-[28px] px-1 py-1 rounded-full bg-blue-400 mx-auto">
                             <Icon className="h-full w-full filter-white" iconUrl={Iconsax.bold['home']}></Icon>
                         </div> : 
@@ -70,7 +40,7 @@ export function NavigationBar(){
                     </div>
 
                     {/* ================= JOURNALS ====================== */}
-                    <div key='journals' onClick={()=>{redirectTo('/journals')}} className='flex flex-col justify-center'>
+                    <div key='journals' onClick={()=>{NavigateService.redirectBasedApp('/journals',true,confirm_redirect_message)}} className='flex flex-col justify-center cursor-pointer'>
                         
                         { location_path == 'journals' ? 
                         <div className="h-[28px] w-[28px] px-1 py-1 rounded-full bg-blue-400 mx-auto">
@@ -84,7 +54,7 @@ export function NavigationBar(){
                     </div>
 
                     {/* ================= JOURNALS ====================== */}
-                    <div key='routines' onClick={()=>{redirectTo('/routines')}} className='flex flex-col justify-center'>
+                    <div key='routines' onClick={()=>{NavigateService.redirectBasedApp('/routines',true,confirm_redirect_message)}} className='flex flex-col justify-center cursor-pointer'>
                         
                         { location_path == 'routines' ? 
                         <div className="h-[28px] w-[28px] px-1 py-1 rounded-full bg-blue-400 mx-auto">
@@ -98,7 +68,7 @@ export function NavigationBar(){
                     </div>
 
                     {/* ================= LOGOUT ====================== */}
-                    <div onClick={confirmLogout} className='flex flex-col justify-center'>
+                    <div onClick={ ()=>{NavigateService.redirectConfirm('/logout',confirm_logout_message) }} className='flex flex-col justify-center cursor-pointer'>
                         
                         { location_path == 'logout' ? 
                         <div className="h-[28px] w-[28px] px-1 py-1 rounded-full bg-blue-400 mx-auto">

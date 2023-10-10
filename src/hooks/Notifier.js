@@ -26,6 +26,7 @@ export const NotifierReducer = (state, action) => {
         ...state,
         loading:action.payload.content      
       }
+      
     case NotifierAction.ADD_NOTIFICATION:
       return {
         ...state,
@@ -34,15 +35,19 @@ export const NotifierReducer = (state, action) => {
           content: action.payload.content,
         }]
       };
+
     case NotifierAction.REMOVE_NOTIFICATION:
       return {
         ...state,
         notification:state['notification'].filter(t => t.id !== action.payload.id)
       };
+
     case NotifierAction.REMOVE_ALL_NOTIFICATION:
-        return {...state,notification:[]};
+      return {...state,notification:[]};
+
     case NotifierAction.CLEAR:
       return NotifierInitial;
+
     default:
       return state;
   }

@@ -3,14 +3,14 @@ import { useLocation, Route, Routes, useMatches, Link } from "react-router-dom";
 
 import { AnimatePresence } from "framer-motion";
 import { Iconsax } from "../utils";
-import { fetchApi } from "../utils/ApiUtils";
+import { fetchApi } from "../hooks_utils/ApiUtils";
 
 import { CircleDecoration, Icon } from "../components/Components";
 import { LayerMain } from "../components/Layers";
 
 import { useNotifierController } from "../hooks_utils/NotifierUtils";
 import { useAuthController } from "../hooks_utils/AuthUtils";
-import { useAppController } from "../hooks_utils/AppUtils";
+import { useAppService } from "../hooks_utils/AppUtils";
 
 export default function JournalsPage() {
   // ========================================================================================================
@@ -18,7 +18,7 @@ export default function JournalsPage() {
   // ========================================================================================================
   const location = useLocation();
 
-  const AppController = useAppController()
+  const AppService = useAppService()
   const NotifierController = useNotifierController();
   const AuthController = useAuthController();
 

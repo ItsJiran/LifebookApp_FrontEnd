@@ -45,9 +45,9 @@ export const SortMonthTable = [
     "Nov",
     "Des",
 ]
-export const DecodeDateTime = (raw_date_time) => {
+export const DecodeDateTime = (raw_date_time,split) => {
     // expected raw_date : yyyy-mm-dd T hh:mm:ss
-    var split = raw_date_time.split('T');
+    var split = raw_date_time.split(split);
     return {
         date:FormatDate(split[0]),
         time:FormatTime(split[1]),
@@ -75,15 +75,33 @@ export const getMonthName = (index,isSort=false)=>{
     if(isSort) return SortMonthTable[index-1];
     else       return MonthTable[index-1];
 }
+export const getLocaleDate = (format)=>{
+    let date = new Date().toLocaleDateString();
 
-//create your forceUpdate hook
-export function useForceUpdate(){
-    const [value, setValue] = useState(0); // integer state
-    return () => setValue(value => value + 1); // update state to force render
-    // A function that increment 👆🏻 the previous state like here 
-    // is better than directly setting `setValue(value + 1)`
+    // expected raw_date : mm/dd/yyyy
+    var split = date.split('/');
+    var obj = {
+        year:split[2],
+        month:split[0],
+        day:split[1],
+    }
+
+    if(obj.month < 10) obj.month = '0' + obj.month;
+    if(obj.day < 10) obj.day = '0' + obj.day;    
+
+    return format.replaceAll('yyyy',obj.year).replaceAll('dd',obj.day).replaceAll('mm',obj.month);
 }
+export const getLocaleTime = ()=>{
+    let date = new Date();
 
+    let current_hour = date.getHours();
+    let current_minutes = date.getMinutes();
+  
+    if(current_hour < 10) current_hour = '0' + current_hour;
+    if(current_minutes < 10) current_minutes = '0' + current_minutes;
+
+    return current_hour + ':' + current_minutes;
+}
 
 // ----------------
 //    ANIMATION
