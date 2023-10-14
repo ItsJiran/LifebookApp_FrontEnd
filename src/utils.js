@@ -31,7 +31,7 @@ export const MonthTable = [
     'November',
     'Desember',   
 ]
-export const SortMonthTable = [
+export const ShortMonthTable = [
     "Jan",
     "Feb",
     "Mar",
@@ -45,6 +45,25 @@ export const SortMonthTable = [
     "Nov",
     "Des",
 ]
+export const DayTable = [
+    'Sunday',
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
+]
+export const ShortDayTable = [
+    "Sun",
+    "Mon",
+    "Tue",
+    "Wed",
+    "Thu",
+    "Fri",
+    "Sat"
+]
+
 export const DecodeDateTime = (raw_date_time,split) => {
     // expected raw_date : yyyy-mm-dd T hh:mm:ss
     var split = raw_date_time.split(split);
@@ -72,8 +91,12 @@ export const FormatTime = (raw_time) => {
     }
 }
 export const getMonthName = (index,isSort=false)=>{
-    if(isSort) return SortMonthTable[index-1];
+    if(isSort) return ShortMonthTable[index-1];
     else       return MonthTable[index-1];
+}
+export const getDayName = (index, isSort=false)=>{
+    if(isSort) return ShortDayTable[index-1];
+    else       return DayTable[index-1];
 }
 export const getLocaleDate = (format)=>{
     let date = new Date().toLocaleDateString();
@@ -111,6 +134,10 @@ export const Motions = {
         'in':{y:'0%'},
         'out':{y:'-100%'},        
     },
+    'swipe-bottom':{
+        'in':{y:'0%'},
+        'out':{y:'100%'},        
+    },
     'swipe-right':{
         'in':{x:'0%'},
         'out':{x:'100%'},
@@ -135,6 +162,11 @@ export const AnimateMotions = {
         'animate':[Motions['swipe-top'].in,Motions['fade'].in],
         'exit':[Motions['swipe-top'].out,Motions['fade'].out],
     },
+    'swipe-bottom-fade-in':{
+        'initial':[Motions['swipe-bottom'].out,Motions['fade'].out],
+        'animate':[Motions['swipe-bottom'].in,Motions['fade'].in],
+        'exit':[Motions['swipe-bottom'].out,Motions['fade'].out],
+    },
     'swipe-left-fade-in':{
         'initial':[Motions['swipe-left'].out,Motions['fade'].out],
         'animate':[Motions['swipe-left'].in,Motions['fade'].in],
@@ -153,6 +185,8 @@ export const AnimateStyle = {
 
 };
 export const TimingMotions = {
+    'ease-0.2':{'transition':{ ease: [0.08, 0.65, 0.53, 0.96], duration: 0.2}},
+    'ease-0.4':{'transition':{ ease: [0.08, 0.65, 0.53, 0.96], duration: 0.4}},
     'ease-0.5':{'transition':{ ease: [0.08, 0.65, 0.53, 0.96], duration: 0.5}},
     'ease-1':{'transition':{ ease: [0.08, 0.65, 0.53, 0.96], duration: 1}},
 }

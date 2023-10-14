@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { useLocation, Route, Routes, useMatches, Link, Navigate, useNavigate } from "react-router-dom";
+import { AxiosError } from "axios";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import { AnimatePresence, motion } from "framer-motion";
 import { Iconsax, TimingMotions, AnimateMotions, DecodeDateTime, getMonthName, useForceUpdate } from "../utils";
@@ -11,8 +12,8 @@ import { LayerMain } from "../components/Layers";
 import { useNotifierController } from "../hooks_utils/NotifierUtils";
 import { useAuthController } from "../hooks_utils/AuthUtils";
 import { useAppService } from "../hooks_utils/AppUtils";
-import { useConfirmerService } from "../hooks_utils/NavigateUtils";
-import { AxiosError } from "axios";
+
+import { useChoicerController } from "../hooks_utils/ChoicerUtils";
 
 export default function IndexPage() {
   // ========================================================================================================
@@ -24,6 +25,7 @@ export default function IndexPage() {
   // -- Service And Controller
   const NotifierController = useNotifierController();
   const AuthController = useAuthController();
+  const ChoicerController = useChoicerController();
   
   const AppService = useAppService();
   const ApiService = useApiService();
@@ -35,10 +37,25 @@ export default function IndexPage() {
     data:[],
   });
 
+  // For Choicer
+  const elmChoices = ( 
+    <>
+        <div onClick={ ()=>{ ChoicerController.action('Same Tab') } } className="w-full px-2 py-2 flex align-center items-center">
+            <Icon className="filter-blue-dark-300 h-6 w-6 mr-3 cursor-pointer" iconUrl={Iconsax.bold['eye.svg']}/>
+            <label className="text-blue-dark-300 text-sm font-semibold tracking-wide leading-4 cursor-pointer">View Material</label>
+        </div>
+
+        <div onClick={ ()=>{ ChoicerController.action('New Tab') } } className="w-full px-2 py-2 flex align-center items-center">
+            <Icon className="filter-blue-dark-300 h-6 w-6 mr-3 cursor-pointer" iconUrl={Iconsax.bold['copy.svg']}/>
+            <label className="text-blue-dark-300 text-sm font-semibold tracking-wide leading-4 cursor-pointer">View On New Tab</label>
+        </div>
+    </> )
+
   // ========================================================================================================
   // ------------------------------------------- REACT EFFECT -----------------------------------------------
   // ========================================================================================================
   React.useEffect(()=>{
+    document.title = 'LifebookApp';
     fetchMaterials();
   },[]);
 
@@ -89,6 +106,15 @@ export default function IndexPage() {
           console.error(e);
       }
     }
+  }
+  async function onClickMaterial(id){
+    const result = await ChoicerController.show(elmChoices);
+
+    if(result == 'Same Tab')
+      return navigate('/materials/view/'+id,{replace:true});
+
+    else if(result == 'New Tab')
+      return window.open('/standalone/materials/view/'+id, '_blank');
   }
 
   return (
@@ -142,33 +168,61 @@ export default function IndexPage() {
 
         <div id='MATERIALS_JOURNAL' className="w-full flex-1 overflow-auto h-fit">
 
-          {/* MATERIALS */}
           <div id='MATERIALS_JOURNAL_CONTAINER' className="w-full flex flex-1 flex-col gap-3">
               <AnimatePresence mode='wait'>
-                {/* ============= LAZY LOADING ============= */}
+
+                {/* ================================================= */}
+                {/* ============= DISPLAY SKELETON DATA ============= */}
+                {/* ================================================= */}
                 { ApiMaterials.loading ?  
                   <>
                     <motion.div key='loading-1' {...{...AnimateMotions['fade-in'],...TimingMotions['ease-0.5']}} className="bg-white w-full rounded-md border-b-2 border-blue-200 h-fit flex px-2 py-2 gap-2">
-                      <div className="bg-blue-200 animate-pulse h-[30px] w-[30px] rounded-md"></div>
-                      <div className="flex-grow flex flex-col py-2 gap-2">
-                        <div className="rounded-md animate-pulse bg-blue-200 h-[5px] w-[80%]"></div>
-                        <div className="rounded-md animate-pulse bg-blue-200 h-[5px] w-[30%]"></div>
-                      </div>
+                        <div className="bg-blue-200 animate-pulse h-[30px] w-[30px] rounded-md"></div>
+                        <div className="flex-grow flex flex-col py-2 gap-2">
+                          <div className="rounded-md animate-pulse bg-blue-200 h-[5px] w-[80%]"></div>
+                          <div className="rounded-md animate-pulse bg-blue-200 h-[5px] w-[30%]"></div>
+                        </div>
+                    </motion.div>
+
+                    <motion.div key='loading-2' {...{...AnimateMotions['fade-in'],...TimingMotions['ease-0.5']}} className="bg-white w-full rounded-md border-b-2 border-blue-200 h-fit flex px-2 py-2 gap-2">
+                        <div className="bg-blue-200 animate-pulse h-[30px] w-[30px] rounded-md"></div>
+                        <div className="flex-grow flex flex-col py-2 gap-2">
+                          <div className="rounded-md animate-pulse bg-blue-200 h-[5px] w-[80%]"></div>
+                          <div className="rounded-md animate-pulse bg-blue-200 h-[5px] w-[30%]"></div>
+                        </div>
+                    </motion.div>
+
+                    <motion.div key='loading-3' {...{...AnimateMotions['fade-in'],...TimingMotions['ease-0.5']}} className="bg-white w-full rounded-md border-b-2 border-blue-200 h-fit flex px-2 py-2 gap-2">
+                        <div className="bg-blue-200 animate-pulse h-[30px] w-[30px] rounded-md"></div>
+                        <div className="flex-grow flex flex-col py-2 gap-2">
+                          <div className="rounded-md animate-pulse bg-blue-200 h-[5px] w-[80%]"></div>
+                          <div className="rounded-md animate-pulse bg-blue-200 h-[5px] w-[30%]"></div>
+                        </div>
                     </motion.div>
                   </>
                 : '' }
-                {/* ============= FETCH DATA ============= */}
+
+                {/* ============================================== */}
+                {/* ============= DISPLAY FETCH DATA ============= */}
+                {/* ============================================== */}
                 {
                   !ApiMaterials.loading && ApiMaterials.data.length > 0 && !ApiMaterials.error ?
                     <>
                       {ApiMaterials.data.map((data)=>{ 
-                        const dateTime = DecodeDateTime(data.date,' ');               
-                        return <motion.div key={data.id} {...{...AnimateMotions['fade-in'],...TimingMotions['ease-0.5']}} className="bg-white w-full rounded-md border-b-2 border-blue-200 h-fit flex px-2 py-2 gap-2">
-                          <Link className="h-[30px] w-[30px] rounded-md" to={'/materials/view/' + data.id} replace>
+                        const dateTime = DecodeDateTime(data.date,' ');
+
+                        return (
+
+                        <motion.div key={data.id} {...{...AnimateMotions['fade-in'],...TimingMotions['ease-0.5']}} className="bg-white w-full rounded-md border-b-2 border-blue-200 h-fit flex px-2 py-2 gap-2">
+                          <div className="h-[30px] w-[30px] rounded-md" onClick={()=>{ onClickMaterial(data.id) }}>
                             <Icon className="h-full w-full filter-blue-400" iconUrl={Iconsax.bold['book-square.svg']}/>
-                          </Link>
+                          </div>
+
                           <div className="flex-grow flex flex-col pt-1 pb-1">
-                            <Link className="w-full h-fit mb-[2px]" to={'/materials/view/' + data.id} replace><h2 className="text-1sm text-blue-dark-300 font-semibold tracking-wide">{data.title}</h2></Link>
+                            <div className="w-fit h-fit mb-[2px]" onClick={()=>{ onClickMaterial(data.id) }}>
+                              <h2 className="text-1sm text-blue-dark-300 font-semibold tracking-wide">{data.title}</h2>
+                            </div>
+
                             <div className="text-2sm text-blue-dark-100 tracking-wide flex gap-1 font-medium">
                               <div className="flex gap-1 align-center items-center">
                                 <Icon className="w-[13px] h-[13px] filter-blue-dark-100" iconUrl={Iconsax.bold['clock.svg']}/>
@@ -177,9 +231,12 @@ export default function IndexPage() {
                               |
                               <label> { dateTime.time.hour + ':' + dateTime.time.minute} </label>
                             </div>
-                          </div>
-                        </motion.div>;
-                      })}
+                          </div> 
+
+                        </motion.div>
+                        
+                        ); })
+                      }
                     </>
                   : ''
                 }
@@ -189,12 +246,15 @@ export default function IndexPage() {
                       <motion.div key='no-content' {...{...AnimateMotions['fade-in'],...TimingMotions['ease-0.5']}} className="flex flex-col items-center text-center w-fit mx-auto h-fit flex px-2 py-2 text-1sm text-blue-dark-200 tracking-wide">
                         <h2 className="font-semibold">Tidak Ditemukan</h2>
                         <p className="mb-2">Klik tambah untuk membuat materi jurnal</p>
-                        <Icon onClick={()=>{fetchMaterials}} className="h-7 w-7 filter-blue-400 hover:filter-blue-dark-300" iconUrl={Iconsax.bold['add-circle.svg']}/>
+                        <Icon onClick={()=>{navigate('/materials/add',{replace:true})}} className="h-7 w-7 filter-blue-400 hover:filter-blue-dark-300" iconUrl={Iconsax.bold['add-circle.svg']}/>
                       </motion.div>
                     </>
                   : ''
                 }
+
+                {/* ============================================ */}
                 {/* ============= ERROR FETCH DATA ============= */}
+                {/* ============================================ */}
                 {
                   !ApiMaterials.loading && ApiMaterials.error ? 
                     <>

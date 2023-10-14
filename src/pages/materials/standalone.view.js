@@ -6,6 +6,10 @@ import { useNavigateService } from "../../hooks_utils/NavigateUtils";
 import { useParams } from "react-router-dom";
 import { useApiService } from "../../hooks_utils/ApiUtils";
 
+import { AuthLoading } from "../../components/Route";
+import { Container, Loading } from "../../components/Components";
+import { Button } from "../../components/ui/Buttons";
+
 export default function StandAlone_MaterialsViewPage() {
 
     // ========================================================================================================
@@ -18,10 +22,13 @@ export default function StandAlone_MaterialsViewPage() {
     const ApiService = useApiService();
 
     // -- Variable And State
+    const [action, setAction] = useState(false);
     const [pageState, setPageState] = useState({
+        dependencies:[],
         error:{
             status:false,
             data:undefined,
+            from:undefined,
         },
     });
     const [resources, setResources] = useState([]);
@@ -31,117 +38,176 @@ export default function StandAlone_MaterialsViewPage() {
     // ------------------------------------------- REACT EFFECT -----------------------------------------------
     // ========================================================================================================
     React.useEffect(() => {
-        fetchLibrary();
+        fetchDependencies();
     }, []);
 
     // ========================================================================================================
     // -------------------------------------------- FUNCTIONS -------------------------------------------------
     // ========================================================================================================
     const fetchLibrary = async () => {
-        try{    
 
-            // === Download Script Files
-            let fetchLocale = await ApiService.fetch({
-                url:'/public/library/pdfjs/web/locale/locale.properties',
-                method:'get',
-                responseType:'blob',
-            });
+      try{    
 
-            if(fetchLocale.status == 200 || fetchLocale.status == 304){
+          // === Download Script Files
+          let fetchLocale = await ApiService.fetch({
+              url:'/public/library/pdfjs/web/locale/locale.properties',
+              method:'get',
+              responseType:'blob',
+          });
 
-                let blob = fetchLocale.response.data;
-                let file = URL.createObjectURL(blob);
+          if(fetchLocale.status == 200 || fetchLocale.status == 304){
 
-                let elm = document.createElement('link');
-                elm.href = file;
-                elm.type = 'application/l10n';
-                elm.rel = 'resource';
+              let blob = fetchLocale.response.data;
+              let file = URL.createObjectURL(blob);
 
-                var arr = resources;
-                arr.push(file);
-                setResources(arr);
+              let elm = document.createElement('link');
+              elm.href = file;
+              elm.type = 'application/l10n';
+              elm.rel = 'resource';
 
-                var arr = resourcesElm;
-                arr.push(elm);
-                setResourcesElm(arr);
+              var arr = resources;
+              arr.push(file);
+              setResources(arr);
 
-            } else if(fetchLocale.status >= 400 || ApiService.isReturnError(fetchLocale)) {
-                throw Error(fetchLocale);                
-            }
+              var arr = resourcesElm;
+              arr.push(elm);
+              setResourcesElm(arr);
 
-            // === Download Script Files
-            let fetchJs = await ApiService.fetch({
-                url:'/public/library/pdfjs/web/pdf.viewer.js',
-                method:'get',
-                responseType:'blob',
-            });
+          } else if(fetchLocale.status >= 400 || ApiService.isReturnError(fetchLocale)) {
+              throw Error(fetchLocale);                
+          }
 
-            if(fetchJs.status == 200 || fetchJs.status == 304){
+          // === Download Script Files
+          let fetchJs = await ApiService.fetch({
+              url:'/public/library/pdfjs/web/pdf.viewer.js',
+              method:'get',
+              responseType:'blob',
+          });
 
-                let blob = fetchJs.response.data;
-                let file = URL.createObjectURL(blob);
+          if(fetchJs.status == 200 || fetchJs.status == 304){
 
-                let elm = document.createElement('script');
-                elm.src = file;
+              let blob = fetchJs.response.data;
+              let file = URL.createObjectURL(blob);
 
-                var arr = resources;
-                arr.push(file);
-                setResources(arr);
+              let elm = document.createElement('script');
+              elm.src = file;
 
-                var arr = resourcesElm;
-                arr.push(elm);
-                setResourcesElm(arr);
+              var arr = resources;
+              arr.push(file);
+              setResources(arr);
 
-            } else if(fetchJs.status >= 400 || ApiService.isReturnError(fetchJs)) {
-                throw Error(fetchJs);                
-            }
+              var arr = resourcesElm;
+              arr.push(elm);
+              setResourcesElm(arr);
 
-            // === Download Css Files
-            let fetchCss = await ApiService.fetch({
-                url:'/public/library/pdfjs/web/viewer.css',
-                method:'get',
-                responseType:'blob',
-            });
+          } else if(fetchJs.status >= 400 || ApiService.isReturnError(fetchJs)) {
+              throw fetchJs;                
+          }
 
-            if(fetchCss.status == 200 || fetchCss.status == 304){
+          // === Download Css Files
+          let fetchCss = await ApiService.fetch({
+              url:'/public/library/pdfjs/web/viewer.css',
+              method:'get',
+              responseType:'blob',
+          });
 
-                let blob = fetchCss.response.data;
-                let file = URL.createObjectURL(blob);
+          if(fetchCss.status == 200 || fetchCss.status == 304){
 
-                let elm  = document.createElement('link');
-                elm.rel  = 'stylesheet';
-                elm.href = file;
+              let blob = fetchCss.response.data;
+              let file = URL.createObjectURL(blob);
 
-                var arr = resources;
-                arr.push(file);
-                setResources(arr);
+              let elm  = document.createElement('link');
+              elm.rel  = 'stylesheet';
+              elm.href = file;
 
-                var arr = resourcesElm;
-                arr.push(elm);
-                setResourcesElm(arr);
+              var arr = resources;
+              arr.push(file);
+              setResources(arr);
 
-            } else if(fetchCss.status >= 400 || ApiService.isReturnError(fetchCss)) {
-                throw Error(fetchCss);                
-            }
+              var arr = resourcesElm;
+              arr.push(elm);
+              setResourcesElm(arr);
 
-            for(let item of resourcesElm){
-                document.body.appendChild(item);
-            }
+          } else if(fetchCss.status >= 400 || ApiService.isReturnError(fetchCss)) {
+              throw fetchCss;                
+          }
 
-        } catch (e) {
-            console.error(e);
-            setPageState({
-                error:{
-                    status:true,
-                    data:e,
+          for(let item of resourcesElm){
+              document.body.appendChild(item);
+              setPageState( (prev)=>({...prev, 
+                dependencies:[...prev.dependencies, 'fetchLibrary'],
+                error:{ 
+                  status:false, 
+                  data:undefined, 
+                  from:undefined 
                 }
-            });
+              }));
+          }
+
+      } catch (e) {
+          console.error(e);
+          setPageState( (prev)=>({...prev,
+            error:{ 
+              status:true,
+              data:e,
+              from:'fetchLibrary'
+            }
+          }));
+      }
+    }
+    const fetchFile = async ()=>{
+      try{
+
+        // === Download Script Files
+        let fetchFile = await ApiService.fetchAuth({
+          slug:'material/'+id,
+          method:'get',
+          responseType:'blob',
+        });
+
+        if(fetchFile.status == 200){
+
+          let blob = fetchFile.response.data;
+          let file = URL.createObjectURL(blob);
+
+          // Note this is from the library pdf js so its outside from react environ,ent
+          PDFViewerApplication.open(file);
+
+          setPageState( (prev)=>({...prev, 
+            dependencies:[...prev.dependencies, 'fetchFile'],
+            error:{ 
+              status:false, 
+              data:undefined, 
+              from:undefined 
+            }
+          }));
+        } else if(fetchFile.status >= 400 || ApiService.isReturnError(fetchFile)) {
+          throw fetchFile;                
         }
+
+      } catch(e) {
+        console.error(e);
+        setPageState( (prev)=>({...prev,
+          error:{ 
+            status:true,
+            data:e,
+            from:'fetchFile'
+          }
+        }));
+      }
+    }
+    const fetchDependencies = async () => {
+      setAction(true);
+
+      if( pageState.dependencies.indexOf('fetchLibrary') == -1 ) await fetchLibrary();
+      if( pageState.dependencies.indexOf('fetchFile') == -1 ) await fetchFile();
+    
+      setAction(false);
     }
 
     const raw_html = `
     
-    <div tabindex="1" class="loadingInProgress">
+    <div tabindex="1" class="loadingInProgress" style='height:100%'>
     <div id="outerContainer">
 
       <div id="sidebarContainer">
@@ -492,19 +558,33 @@ export default function StandAlone_MaterialsViewPage() {
   </div>
     `
 
+    let displayHtml = {display:'none'};
+    if(!action && !pageState.error.status) displayHtml = {display:'initial'};
+
     return (
         <>
 
-            { <div dangerouslySetInnerHTML={{ __html: raw_html }}></div> }
 
-            {/* Error Conditional */}
-            {   
-                pageState.error.status ? 
-                <>
-                    <h1>Terjadi kesalahan dalam library</h1>
-                    <button onClick={()=>{fetchLibrary()}}>Retry</button>
-                </> : '' 
-            }
+            { <div style={displayHtml} dangerouslySetInnerHTML={{ __html: raw_html }}></div> }
+
+            {/* Loading Conditional */}
+            { action ? 
+              <Container className="bg-white absolute h-full w-full top-0 left-0">
+                  <AuthLoading/>
+              </Container> 
+            : '' }
+
+            {/* Loading Conditional */}
+            { pageState.error.status  ? 
+              <Container className="bg-white absolute h-full w-full top-0 left-0 flex flex-col justify-center align-center text-center">
+                <h3 className="font-bold text-blue-dark-300 text-lg">!Ooops</h3>
+                <p className="text-sm mb-6 text-center text-blue-dark-400"> Seems like there's an error when try to get data from the server, click this button to retry..</p>
+                <Button onClick={fetchDependencies} className='w-32 py-2 text-lg mx-auto block' type='submit' variant={action ? 'blue-pressed' : 'blue'} >
+                    {action ? <Loading className="h-6 w-6 filter-black-100 mx-auto" /> : <p className="cursor-pointer">RETRY</p>}
+                </Button>
+              </Container> 
+            : '' }
+
 
         </>
     )

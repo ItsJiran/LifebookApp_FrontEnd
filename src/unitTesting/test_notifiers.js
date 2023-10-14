@@ -6,7 +6,7 @@ import { NotifierContext } from "../hooks/Notifier";
 import { useNotifierController } from "../hooks_utils/NotifierUtils";
 import { useConfirmerController } from "../hooks_utils/NavigateUtils";
 
-export function test_notifier_components(){
+export function test_notifier_component(){
 
     const [notifier,notifierDispatch] = useContext(NotifierContext);
     const ConfirmerController = useConfirmerController();

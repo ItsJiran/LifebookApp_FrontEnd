@@ -144,10 +144,10 @@ export const useApiService = ()=>{
         if(obj.slug == undefined) return Error('fetchApi config parameter not valid');
 
         const config = {
-            ...obj,
             method:obj.method,
             url: process.env.BACKEND_URL + 'api/' + obj.slug,
-            headers:{Accept:"application/json"}
+            ...obj,
+            headers:{Accept:"application/json"},
         }
 
         if(obj.method == undefined)   config.method = 'get';

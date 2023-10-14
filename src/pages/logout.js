@@ -32,7 +32,7 @@ export default function LogoutPage() {
             if(fetch.status == 200 || fetch.status == 401){
                 AuthService.clear();
                 AuthService.setAuthStatus(AuthStatus.INVALID);
-                AppService.resetApp();
+                AppService.reset();
             } 
             
             else if(fetch.status >= 400) {

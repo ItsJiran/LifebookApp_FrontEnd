@@ -5,8 +5,9 @@ import { useAppService } from "../../hooks_utils/AppUtils";
 import { useNavigateService } from "../../hooks_utils/NavigateUtils";
 import { useParams } from "react-router-dom";
 import { useApiService } from "../../hooks_utils/ApiUtils";
-import { Icon, LoadingContainer } from "../../components/Components";
+import { Container, Icon, LoadingContainer } from "../../components/Components";
 import { Iconsax } from "../../utils";
+import { AuthLoading } from "../../components/Route";
 
 export default function MaterialsViewPage() {
 
@@ -20,20 +21,14 @@ export default function MaterialsViewPage() {
     const ApiService = useApiService();
 
     // -- Variable And State
-    const [pageState, setPageState] = useState({
-        error:{
-            status:false,
-            data:undefined,
-        },
-    });
-    const [resources, setResources] = useState([]);
-    const [resourcesElm, setResourcesElm] = useState([]);
+    const [action,setAction] = useState(true);
 
     // ========================================================================================================
     // ------------------------------------------- REACT EFFECT -----------------------------------------------
     // ========================================================================================================
     React.useEffect(() => {
         AppService.navbar.set.status( AppService.navbar.status().hidden );
+        document.title = 'LifebookApp | View Material ' + id;
     }, []);
 
     // ========================================================================================================
@@ -43,8 +38,18 @@ export default function MaterialsViewPage() {
 
     return (
         <>
-            <iframe className="h-full" src={'/standalone/materials/view/'+id}/>
 
+            {/* Iframe */}
+            { action ? 
+              <Container className="bg-white absolute h-full w-full top-0 left-0">
+                  <AuthLoading/>
+              </Container> 
+            : '' }
+
+            {/* Iframe */}
+            <iframe onLoad={()=>{ setAction(false) }} className="h-full" src={'/standalone/materials/view/'+id}/>
+
+            {/* Arrow */}
             <div className="w-full absolute bottom-5">
                 <LoadingContainer key='notifier-more' className="mx-auto h-fit w-fit shadow bg-blue-100"> 
                     { AppService.navbar.get.status() == AppService.navbar.status().show ? 

@@ -9,10 +9,13 @@ import LogoutPage from "./pages/logout";
 
 import { AuthContext, AuthStatus } from "./hooks/Authenticated";
 
-import { test_notifier_components } from "./unitTesting/test_notifiers";
+import { test_notifier_component } from "./unitTesting/test_notifiers";
+import { test_choicer_component } from "./unitTesting/test_choicer";
+
 import { useAuthController, useAuthService } from "./hooks_utils/AuthUtils";
 import { useNotifierController } from "./hooks_utils/NotifierUtils";
 import { useAppService } from "./hooks_utils/AppUtils";
+
 import StandAlone_MaterialsViewPage from "./pages/materials/standalone.view";
 
 export default function App() {
@@ -63,29 +66,45 @@ export default function App() {
         <BrowserRouter basename="/">
             <Routes>
 
+                {/* ====================== ROOTS ROUTE =============================== */}
                 <Route element={<RootLayouts/>}>
 
+                    {/* --- Authenticated Route */}
                     <Route element={<ProtectedRoute/>}>
                         <Route path="/*" Component={AppLayouts}/>
                         <Route exact path="/logout" Component={LogoutPage} />
                     </Route>
 
+                    {/* --- Non Authenticated Route */}
                     <Route element={<AuthRoute/>}>
                         <Route exact path="/login" Component={AuthLayouts} />
                         <Route exact path="/register" Component={AuthLayouts} /> 
                     </Route>
 
+                    {/* --- Testing Route */}
                     { process.env.NODE_ENV == 'development' ? 
-                        <Route exact path="/test/notifier" Component={test_notifier_components} />
+                        <>
+                            <Route exact path="/test/notifier" Component={test_notifier_component} />
+                            <Route exact path="/test/choicer" Component={test_choicer_component} />
+                        </>
                     : '' }
 
                     <Route path="*" element={<h1>Page Not Found</h1>} />
 
                 </Route>
 
+                {/* ====================== STAND ALONE ROUTE =============================== */}
+                {/* --- Authenticated Route */}
                 <Route element={<ProtectedRoute/>}>
                     <Route exact path="/standalone/materials/view/:id" Component={StandAlone_MaterialsViewPage}/>
                 </Route>
+
+                {/* --- Testing Route */}
+                { process.env.NODE_ENV == 'development' ? 
+                        <>
+
+                        </>
+                : '' }
                 
             </Routes>
         </BrowserRouter>

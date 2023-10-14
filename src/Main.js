@@ -6,6 +6,7 @@ import { AuthContext, AuthInitial, AuthReducer } from "./hooks/Authenticated";
 import { AppContext, AppInitial, AppReducer } from "./hooks/App";
 
 import App from "./App";
+import { ChoicerContext, ChoicerInitial, ChoicerReducer } from "./hooks/Choicer";
 
 
 export default function Main(){
@@ -14,6 +15,7 @@ export default function Main(){
     const [notifier, notifierDispatch] = useReducer( NotifierReducer, NotifierInitial);
     const [confirmerState, confirmerDispatch] = useReducer( ConfirmerReducer, ConfirmerInitial );
     const [authState, authDispatch] = useReducer( AuthReducer, AuthInitial );
+    const [choicerState, choicerDispatch] = useReducer( ChoicerReducer, ChoicerInitial );
 
     return (
 
@@ -21,15 +23,19 @@ export default function Main(){
     
             <NotifierContext.Provider value={[notifier, notifierDispatch]}> 
 
-                <ConfirmerContext.Provider value={[ confirmerState, confirmerDispatch ]}>
+                <ChoicerContext.Provider value={[ choicerState, choicerDispatch ]}>
 
-                    <AuthContext.Provider value={[authState,authDispatch]}>
+                    <ConfirmerContext.Provider value={[ confirmerState, confirmerDispatch ]}>
 
-                        <App/>
+                        <AuthContext.Provider value={[authState,authDispatch]}>
 
-                    </AuthContext.Provider>
+                            <App/>
 
-                </ConfirmerContext.Provider>
+                        </AuthContext.Provider>
+
+                    </ConfirmerContext.Provider>
+
+                </ChoicerContext.Provider>
 
             </NotifierContext.Provider>
 

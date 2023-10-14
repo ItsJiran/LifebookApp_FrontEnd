@@ -13,6 +13,7 @@ import { AnimateMotions, TimingMotions } from "../utils";
 import { ConfirmerContext, triggerConfirm, useConfirmer } from "../hooks/Confirmer";
 import { useNotifierController } from "../hooks_utils/NotifierUtils";
 import { useConfirmerController } from "../hooks_utils/NavigateUtils";
+import { useChoicerController } from "../hooks_utils/ChoicerUtils";
 
 
 export function RootLayouts({ children }) {
@@ -20,6 +21,7 @@ export function RootLayouts({ children }) {
     const [notifier] = useContext(NotifierContext);
     const ConfirmerController = useConfirmerController();
     const NotifierController = useNotifierController();
+    const ChoicerController = useChoicerController();
 
     return (
 
@@ -33,7 +35,7 @@ export function RootLayouts({ children }) {
                         
                             <motion.div animate={{...AnimateMotions['fade-in'], ...TimingMotions['ease-0.5']}} onClick={ConfirmerController.confirmCancel} className="absolute w-full h-full top-0 left-0 bg-black-400 opacity-40"></motion.div>
                             
-                            <Container animate={{...AnimateMotions['swipe-top-fade-in'], ...TimingMotions['ease-0.5']}} className="px-4 py-4 relative w-full mx-6">
+                            <Container animate={{...AnimateMotions['swipe-top-fade-in'], ...TimingMotions['ease-0.4']}} className="px-4 py-4 relative w-full mx-6">
                                 <label className="block text-center font-semibold mb-2 text-lg text-blue-dark-400">{ConfirmerController.confirmState.content.title}</label>
                                 <p className="block text-1sm mb-6 text-blue-dark-400">{ConfirmerController.confirmState.content.message}</p>
                                 <div className="flex gap-2 items-center">
@@ -45,6 +47,22 @@ export function RootLayouts({ children }) {
                         </div>
                     </div> 
                 : '' }
+                {/* CHOICER POP OVER */}
+                {
+                    ChoicerController.state.show ? 
+                        <div key='choicer' className="absolute top-0 h-full left-0 w-full overflow-y-hidden">
+                            <div className="sticky h-full top-0 items-center flex z-50 justify-center">
+                            
+                                <motion.div animate={{...AnimateMotions['fade-in'], ...TimingMotions['ease-0.5']}} onClick={ChoicerController.hide} className="absolute w-full h-full top-0 left-0 bg-black-400 opacity-40"></motion.div>
+                                
+                                <Container animate={{...AnimateMotions['swipe-bottom-fade-in'], ...TimingMotions['ease-0.5']}} className="px-4 py-4 pb-6 absolute w-full mx-6 -bottom-2 flex flex-col">
+                                    { ChoicerController.state.elm }
+                                </Container>
+                                
+                            </div>
+                        </div> 
+                    : ''
+                }
             </AnimatePresence>
 
             {/* FOR EVERY NOTIFICATION, POPUP AND TOAST */}

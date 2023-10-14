@@ -11,6 +11,7 @@ import MaterialsAddPage from "../pages/materials/add";
 import MaterialsViewPage from "../pages/materials/view";
 import { useAuthService } from "../hooks_utils/AuthUtils";
 import { useAppService } from "../hooks_utils/AppUtils";
+import JournalsDate from "../pages/journals/index.date";
 
 export function AppLayouts({ children }) {
     const location = useLocation();
@@ -30,9 +31,11 @@ export function AppLayouts({ children }) {
                     {/* ------------- REGULAR USER --------------- */}
                     <Route exact path='/' Component={LightBlueBG}></Route>
                     <Route exact path='/dashboard' Component={LightBlueBG}></Route>
+
                     <Route exact path='/journals' Component={LightBlueBG}></Route>
-                    <Route exact path='/routines' Component={LightBlueBG}></Route>
-                    
+                    <Route exact path='/journals/date' Component={LightBlueBG}></Route>
+
+                    <Route exact path='/routines' Component={LightBlueBG}></Route>                    
                     <Route exact path='/materials/view/:id' Component={WhiteBG}></Route>
 
                     {/* -------------- ADMIN USER --------------- */}
@@ -53,8 +56,8 @@ export function AppLayouts({ children }) {
                     <Route exact path='/' Component={IndexPage}></Route>
                     <Route exact path='/dashboard' Component={IndexPage}></Route>
                     <Route exact path='/journals' Component={JournalsPage}></Route>
+                    <Route exact path='/journals/date' Component={JournalsDate}></Route>
                     <Route exact path='/routines' Component={IndexPage}></Route>
-                    
                     <Route exact path='/materials/view/:id' Component={MaterialsViewPage}></Route>
 
                     {/* -------------- ADMIN USER --------------- */}
@@ -70,9 +73,9 @@ export function AppLayouts({ children }) {
             {/* ======================== NAVIGATION BAR ========================== */}
             <Routes location={location}>
                 <Route path="/" Component={NavigationBar}/>
-                <Route path="/materials/*" Component={NavigationBar}/>
                 <Route path="/dashboard" Component={NavigationBar}/>
-                <Route path="/journals" Component={NavigationBar}/>
+                <Route path="/materials/*" Component={NavigationBar}/>
+                <Route path="/journals/*" Component={NavigationBar}/>
                 <Route path="/routines" Component={NavigationBar}/>
                 <Route path="*" Component={NavigationBar}/> 
             </Routes>
