@@ -69,20 +69,23 @@ html, body, #root{
         filter: invert(35%) sepia(6%) saturate(7357%) hue-rotate(299deg) brightness(98%) contrast(81%);
     }
     
+    .filter-yellow{
+        filter: invert(84%) sepia(43%) saturate(524%) hue-rotate(350deg) brightness(101%) contrast(101%);
+    }
     .filter-yellow-100{
         filter: invert(87%) sepia(35%) saturate(379%) hue-rotate(347deg) brightness(101%) contrast(104%);
     }
     .filter-yellow-200{
-    
+        filter: invert(85%) sepia(15%) saturate(1169%) hue-rotate(333deg) brightness(112%) contrast(106%);
     }
     .filter-yellow-300{
     
     }
     .filter-yellow-400{
-        filter: invert(85%) sepia(7%) saturate(2456%) hue-rotate(4deg) brightness(89%) contrast(90%);
+        filter: invert(69%) sepia(42%) saturate(432%) hue-rotate(10deg) brightness(101%) contrast(90%);
     }
     .filter-yellow-500{
-        filter: invert(72%) sepia(9%) saturate(2394%) hue-rotate(10deg) brightness(89%) contrast(84%);
+        filter: invert(64%) sepia(46%) saturate(466%) hue-rotate(10deg) brightness(92%) contrast(91%);
     }
 
     .filter-green-100{

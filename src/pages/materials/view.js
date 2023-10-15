@@ -37,7 +37,7 @@ export default function MaterialsViewPage() {
 
 
     return (
-        <>
+        <div className="relative h-full w-full">
 
             {/* Iframe */}
             { action ? 
@@ -47,7 +47,7 @@ export default function MaterialsViewPage() {
             : '' }
 
             {/* Iframe */}
-            <iframe onLoad={()=>{ setAction(false) }} className="h-full" src={'/standalone/materials/view/'+id}/>
+            <iframe onLoad={()=>{ setAction(false) }} className="h-full w-full" src={'/standalone/materials/view/'+id}/>
 
             {/* Arrow */}
             <div className="w-full absolute bottom-5">
@@ -62,7 +62,7 @@ export default function MaterialsViewPage() {
             </div>
 
 
-        </>
+        </div>
     )
 
 }

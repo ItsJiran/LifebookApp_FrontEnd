@@ -2,7 +2,7 @@ import React, { Children } from "react";
 import { motion } from "framer-motion";
 
 export function LayerMain({id='',animate={},className='',children,style={}}){
-    return (<motion.div style={style} {...animate} id={id} className={'box-border w-full h-full relative' + ' ' + className}>{children}</motion.div>)
+    return (<motion.div style={style} {...animate} id={id} className={'box-border w-full h-full' + ' ' + className}>{children}</motion.div>)
 }
 
 export function LayerOverlayWrapper({id='',className='',children}){
@@ -14,5 +14,5 @@ export function LayerOverlay({id='',className='',children}){
 }   
 
 export function LayerBackground({id='',className='',children,style={}}){
-    return (<div id={id} style={style} className={'w-full h-full absolute overflow-hidden' + ' ' + className}>{children}</div>)
+    return (<div id={id} style={style} className={'w-full h-full overflow-hidden' + ' ' + className}>{children}</div>)
 }

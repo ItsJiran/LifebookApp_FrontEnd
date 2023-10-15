@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { date } from "yup";
 
 // ----------------
 //     ASSETS
@@ -17,6 +18,92 @@ export const FilePath = {
 // -----------------------------
 //    DATE AND TIME FORMATTER
 // -----------------------------
+export class CustomDate{
+
+    constructor( date = new Date() )   {
+        this.set(date);
+    }
+
+    serialize(){
+        return {
+            current : this.current,
+            last : this.last,
+            prev : this.prev,
+        };
+    }
+    static unserialize(object){
+        return new CustomDate( new Date(object.current.year, object.current.month, object.current.day) );
+    }
+
+    set(date){
+        if (date instanceof Date == false) throw new Error('date should be instance of Date');
+        this._initializeCurrent(date);
+        this._initializeNext();
+        this._initializePrev();
+    }
+    nextMonth(isMock = false,day){
+        if(isMock) return new CustomDate( new Date(this.current.year, this.current.month + 1,1) );
+        else       this.set( new Date(this.current.year, this.current.month + 1, 1) );
+    }
+    prevMonth(isMock = false,day){
+        if(isMock) return new CustomDate( new Date(this.current.year, this.current.month - 1, this.prev.last.date) );
+        else       this.set( new Date(this.current.year, this.current.month - 1, 1) );
+    }
+
+    // PRIVATE
+    _initializeCurrent(date){
+        var tmp = ExtractDateObj(date);
+
+        this.current = {
+            day : tmp.day,
+            year : tmp.year,
+            month : tmp.month,
+        }
+        this.start = tmp.start;
+        this.last = tmp.last;
+
+        
+        if(this.current.month == new Date().getMonth() && this.current.year == new Date().getFullYear() && this.current.day.date == new Date().getDate()){
+            this.current.isToday = true;
+        } else {
+            this.current.isToday = false;
+        }
+    }
+    _initializePrev(){
+        var tmp = ExtractDateObj( new Date(this.current.year, this.current.month - 1) );
+        this.prev  = tmp;
+    }
+    _initializeNext(){
+        var tmp = ExtractDateObj( new Date(this.current.year, this.current.month + 1) );
+        this.next  = tmp;
+    }
+}
+export const ExtractDateObj = (dateObj)=>{
+    if (dateObj instanceof Date == false) throw new Error('dateObj should be instance of Date');
+
+    var tmp = {
+        day:{
+            num:dateObj.getDay(),
+            date:dateObj.getDate(),
+        },
+        month:dateObj.getMonth(),
+        year:dateObj.getFullYear(),
+
+    }
+
+    tmp.start = {
+        num:new Date(tmp.year, tmp.month, 1).getDay(),
+        date:new Date(tmp.year, tmp.month, 1).getDate(),
+    }
+
+    tmp.last = {
+        num:new Date(tmp.year, tmp.month + 1, 0).getDay(),
+        date:new Date(tmp.year, tmp.month + 1, 0).getDate(),
+    }
+
+    return tmp;
+
+}
 export const MonthTable = [
     'January',
     'February',
@@ -91,12 +178,12 @@ export const FormatTime = (raw_time) => {
     }
 }
 export const getMonthName = (index,isSort=false)=>{
-    if(isSort) return ShortMonthTable[index-1];
-    else       return MonthTable[index-1];
+    if(isSort) return ShortMonthTable[index];
+    else       return MonthTable[index];
 }
 export const getDayName = (index, isSort=false)=>{
-    if(isSort) return ShortDayTable[index-1];
-    else       return DayTable[index-1];
+    if(isSort) return ShortDayTable[index];
+    else       return DayTable[index];
 }
 export const getLocaleDate = (format)=>{
     let date = new Date().toLocaleDateString();

@@ -86,6 +86,10 @@ export function useAppService(){
         },
         get:{
             status:()=>{ return AppState.navbar.status },
+            height:()=>{
+                if(navbar.get.status() == navbar.status().show) return 70;
+                else                                            return 0;
+            },
         },
         show : ()=>{ navbar.set.status( navbar.status().show ) },
         hidden : ()=>{ navbar.set.status( navbar.status().hidden ) },

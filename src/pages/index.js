@@ -209,7 +209,9 @@ export default function IndexPage() {
                   !ApiMaterials.loading && ApiMaterials.data.length > 0 && !ApiMaterials.error ?
                     <>
                       {ApiMaterials.data.map((data)=>{ 
-                        const dateTime = DecodeDateTime(data.date,' ');
+                        const dateTime = DecodeDateTime(data.date,' ');                      
+
+                        console.log(dateTime);
 
                         return (
 
@@ -226,7 +228,7 @@ export default function IndexPage() {
                             <div className="text-2sm text-blue-dark-100 tracking-wide flex gap-1 font-medium">
                               <div className="flex gap-1 align-center items-center">
                                 <Icon className="w-[13px] h-[13px] filter-blue-dark-100" iconUrl={Iconsax.bold['clock.svg']}/>
-                                <label> { dateTime.date.day + ' ' + getMonthName(dateTime.date.month,true) + ' ' + dateTime.date.year} </label>
+                                <label> { dateTime.date.day + ' ' + getMonthName(dateTime.date.month-1,true) + ' ' + dateTime.date.year} </label>
                               </div>
                               |
                               <label> { dateTime.time.hour + ':' + dateTime.time.minute} </label>

@@ -26,18 +26,23 @@ export function AppLayouts({ children }) {
 
     return (
         <div className="flex flex-col h-full relative overflow-hidden">
-            <LayerBackground id='LAYER_BACKGROUND' style={AppNavbarClass}>
+            <div className="h-0 -z-1" id='LAYER_BACKGROUND'>
                 <Routes location={location}>
                     {/* ------------- REGULAR USER --------------- */}
-                    <Route exact path='/' Component={LightBlueBG}></Route>
-                    <Route exact path='/dashboard' Component={LightBlueBG}></Route>
+                    <Route element={<LightBlueBG style={AppNavbarClass}/>}>
+                        <Route exact path='/'></Route>
+                        <Route exact path='/dashboard'></Route>
 
-                    <Route exact path='/journals' Component={LightBlueBG}></Route>
-                    <Route exact path='/journals/date' Component={LightBlueBG}></Route>
+                        <Route exact path='/journals'></Route>
+                        <Route exact path='/journals/date' ></Route>
 
-                    <Route exact path='/routines' Component={LightBlueBG}></Route>                    
-                    <Route exact path='/materials/view/:id' Component={WhiteBG}></Route>
+                        <Route exact path='/routines'></Route>
+                    </Route>
 
+                    <Route element={<WhiteBG style={AppNavbarClass}/>}>
+                        <Route exact path='/materials/view/:id' Component={WhiteBG}></Route>
+                    </Route>
+                                        
                     {/* -------------- ADMIN USER --------------- */}
                     { AuthService.getUser().role == 'admin' ?
                         <>
@@ -47,10 +52,20 @@ export function AppLayouts({ children }) {
 
                     <Route path="*" Component={WhiteBG} />
                 </Routes>                
-            </LayerBackground>
+            </div>
+
+            {/* ======================== NAVIGATION BAR ========================== */}
+            <Routes location={location}>
+                <Route path="/" Component={NavigationBar}/>
+                <Route path="/dashboard" Component={NavigationBar}/>
+                <Route path="/materials/*" Component={NavigationBar}/>
+                <Route path="/journals/*" Component={NavigationBar}/>
+                <Route path="/routines" Component={NavigationBar}/>
+                <Route path="*" Component={NavigationBar}/> 
+            </Routes>
 
             {/* ======================== LAYER PAGE CONTENT ========================== */}
-            <LayerMain id='LAYER_MAIN_CONTENT' className={"px-0 py-0 flex overflow-auto flex-col h-full"} style={AppNavbarClass}>
+            <LayerMain id='LAYER_MAIN_CONTENT' className={"px-0 py-0 flex overflow-auto flex-col"} style={AppNavbarClass}>
                 <Routes location={location}>
                     {/* ------------- REGULAR USER --------------- */}
                     <Route exact path='/' Component={IndexPage}></Route>
@@ -70,15 +85,6 @@ export function AppLayouts({ children }) {
                 </Routes>
             </LayerMain>
 
-            {/* ======================== NAVIGATION BAR ========================== */}
-            <Routes location={location}>
-                <Route path="/" Component={NavigationBar}/>
-                <Route path="/dashboard" Component={NavigationBar}/>
-                <Route path="/materials/*" Component={NavigationBar}/>
-                <Route path="/journals/*" Component={NavigationBar}/>
-                <Route path="/routines" Component={NavigationBar}/>
-                <Route path="*" Component={NavigationBar}/> 
-            </Routes>
         </div>
     )
 }
