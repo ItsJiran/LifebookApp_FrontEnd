@@ -186,14 +186,15 @@ export const getDayName = (index, isSort=false)=>{
     else       return DayTable[index];
 }
 export const getLocaleDate = (format)=>{
-    let date = new Date().toLocaleDateString();
+    let date = new Date();
 
-    // expected raw_date : mm/dd/yyyy
-    var split = date.split('/');
+    // expected format date yyyy-mm-dd
+    let split = date.toISOString().split('T')[0].split('-');
+
     var obj = {
-        year:split[2],
-        month:split[0],
-        day:split[1],
+        year:split[0],
+        month:split[1],
+        day:split[2],
     }
 
     if(obj.month < 10) obj.month = '0' + obj.month;
@@ -312,3 +313,106 @@ export const Iconsax = {
     'outline':new IconsaxType('outline',IconsaxSrc),
     'bold':new IconsaxType('bold',IconsaxSrc),
 }
+
+// useful for post 
+export const FormatDataAscending = (data)=>{
+    if(data == {}) return {};
+
+    // separate with the same years
+    var tmp_arr = {};
+
+    // let assumption that data year will be yyyy-mm-dd
+    // and assumption that month will not be an index so it start from 1
+    for(let datum of data){
+      var extract_date = FormatDate(datum.date);
+      var extract_time = FormatTime(datum.time);
+
+      if( !tmp_arr[extract_date.year] ) tmp_arr[extract_date.year] = {};
+
+      if( !tmp_arr[extract_date.year][extract_date.month] ) tmp_arr[extract_date.year][extract_date.month] = {};
+
+      if( !tmp_arr[extract_date.year][extract_date.month][extract_date.day] ) tmp_arr[extract_date.year][extract_date.month][extract_date.day] = [];
+
+      datum.extract_date = extract_date;
+      datum.extract_time = extract_time;
+      tmp_arr[extract_date.year][extract_date.month][extract_date.day].push(datum);
+    }
+
+    // sort year asc
+
+    // Sorting again for the day
+    for(let by_year of Object.keys(tmp_arr)){
+
+      for(let by_month of Object.keys(tmp_arr[by_year])){
+
+        for(let by_days of Object.keys( tmp_arr[by_year][by_month]) ){
+
+          var tmp = tmp_arr[by_year][by_month][by_days];
+
+          for(let i = 0; i < tmp.length; i++){
+
+            if(tmp[i+1] !== undefined){
+              if( parseInt( FormatTime(tmp[i].time).hour ) < parseInt( FormatTime(tmp[i+1].time).hour ) ){
+                var n = tmp[i];
+                tmp[i] = tmp[i+1];
+                tmp[i+1] = n;
+              } else if( parseInt( FormatTime(tmp[i].time).hour ) == parseInt( FormatTime(tmp[i+1].time).hour ) && 
+                         parseInt( FormatTime(tmp[i].time).minute ) < parseInt( FormatTime(tmp[i+1].time).minute ) ){
+                var n = tmp[i];
+                tmp[i] = tmp[i+1];
+                tmp[i+1] = n;
+              }
+
+            }
+        
+            if(tmp[i-1] !== undefined){
+              if( parseInt( FormatTime(tmp[i].time).hour ) > parseInt( FormatTime(tmp[i-1].time).hour ) ){
+                var n = tmp[i];
+                tmp[i] = tmp[i-1];
+                tmp[i-1] = n;
+                i=0;   
+              } else if( parseInt( FormatTime(tmp[i].time).hour ) == parseInt( FormatTime(tmp[i-1].time).hour ) && 
+                         parseInt( FormatTime(tmp[i].time).minute ) > parseInt( FormatTime(tmp[i-1].time).minute ) ){
+                var n = tmp[i];
+                tmp[i] = tmp[i-1];
+                tmp[i-1] = n;
+                i=0;   
+              }
+        
+            }
+        
+          }
+
+        }
+
+      } 
+
+    } 
+
+    // sort asc month year days
+    // var new_year = Object.keys(tmp_arr).sort( (a,b)=>{ if(a<b) return 1; else return -1; } );
+    // var new_data = [];
+  
+    // for( let year of new_year ){
+
+    //   var new_months =  Object.keys(tmp_arr[year]).sort( (a,b)=>{ if(a<b) return 1; else return -1; } );
+
+    //   for(let months of new_months){
+
+    //     var new_days = Object.keys(tmp_arr[year][months]).sort( (a,b)=>{ if(a<b) return 1; else return -1; } );
+        
+    //     for(let days of new_days){
+          
+    //       for(let day of tmp_arr[year][months][days]){
+    //         new_data.push(day);
+    //       }
+
+    //     }
+        
+    //   }
+
+    // }
+
+    return tmp_arr;
+  }
+

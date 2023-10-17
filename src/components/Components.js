@@ -12,14 +12,14 @@ export function CircleDecoration({className='',variant='blue'}){
     else                  return ( <div className={className} style={{backgroundImage:`Url('/public/assets/svg/circle-white.svg')`}}/> );
 }
 
-export function Loading({className='',animate={}}){
+export function Loading({onClick,className='',animate={}}){
     return (
-        <motion.div {...animate} className={`bg-cover animate-spin delay-200 transition ease-in bg-no-repeat` + ' ' + className} style={{backgroundImage:`Url('/public/assets/svg/loading-2.svg')`}}/>
+        <motion.div onClick={onClick} {...animate} className={`bg-cover animate-spin delay-200 transition ease-in bg-no-repeat` + ' ' + className} style={{backgroundImage:`Url('/public/assets/svg/loading-2.svg')`}}/>
     );
 }
-export function LoadingContainer({className='',children, animate={}}){
+export function LoadingContainer({onClick, className='',children, animate={}}){
     return (
-        <motion.div {...animate} className={`rounded-full h-fit w-fit box-content bg-white px-1 py-1 border-b-2 border-blue-300` + ' ' + className}>
+        <motion.div {...animate} onClick={onClick} className={`rounded-full h-fit w-fit box-content bg-white px-1 py-1 border-b-2 border-blue-300` + ' ' + className}>
             {children}
         </motion.div>
     )

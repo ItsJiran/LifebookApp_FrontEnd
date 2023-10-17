@@ -6,7 +6,56 @@ html, body, #root{
     min-height: 100%;
     height: 100%;
 }
-
+    .custom-editor{
+        border-left:1px;
+        border-right:1px;
+        border-bottom: 1px;
+        border-style: solid;
+        border-color: #a3bdebfa;
+    }
+    .custom-editor .cdx-checklist{
+        gap:8px;
+        padding:0.8em 0;
+    }
+    .custom-editor .cdx-checklist__item-checkbox{
+        margin-left:3px;
+        margin-right:8px;
+    }
+    .custom-editor .cdx-checklist__item{
+        
+    }
+    .custom-editor .cdx-checklist__item-text{
+        font-size:0.9rem;
+    }
+    .custom-editor .ce-block__content .ce-paragraph,
+    .custom-editor .ce-block__content .cdx-checklist,
+    .custom-editor .ce-block__content .cdx-list,
+    .custom-editor .ce-block__content .cdx-nested-list{
+        border-bottom: 1px;
+        border-style: dashed;
+        border-color: #a3bdebfa;
+    }
+    .custom-editor h1.ce-header{
+        @apply text-2xl tracking-wider font-bold;
+    }
+    .custom-editor h2.ce-header{
+        @apply text-xl font-bold;
+    }
+    .custom-editor h3.ce-header{
+        @apply text-xl font-semibold;
+    }
+    .custom-editor h4.ce-header{
+        @apply text-lg font-semibold;
+    }
+    .custom-editor h5.ce-header{
+        @apply text-md font-semibold;
+    }
+    .custom-editor h6.ce-header{
+        @apply text-base font-semibold;
+    }
+    .codex-editor__redactor{
+        padding-bottom:0px !important;
+    }
 
 @layer components{
 
@@ -102,3 +151,4 @@ html, body, #root{
     }
 
 }
+

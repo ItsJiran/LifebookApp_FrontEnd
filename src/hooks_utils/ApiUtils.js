@@ -40,20 +40,36 @@ export const useApiService = ()=>{
     // Generate Api Error And Title For Notifier
     const generateApiTitle = (fetch,custom=()=>{return undefined})=>{
         var custom_title = custom(fetch);
-        var title = '';
 
         // If custom exist
         if ( custom_title !== undefined ) return custom_title;
-        // Specific Api Title
-        else if(fetch.status == 200) title = 'Sukses';
-        else if(fetch.status == 401) title = 'Unauthorized';
-        // General Api Title
-        else if (fetch.status >= 100 && fetch.status < 200) title = 'Informational';
-        else if (fetch.status >= 200 && fetch.status < 300) title = 'Sukses';
-        else if (fetch.status >= 300 && fetch.status < 400) title = 'Redirection';
-        else if (fetch.status >= 400 && fetch.status < 500) title = 'Client Error';
-        else if (fetch.status >= 500 && fetch.status < 600) title = 'Server Error';
-        else if (fetch.code){
+        if(fetch.status){
+            // Specific Api Title
+            if(fetch.status == 200) return 'Sukses';
+            if(fetch.status == 401) return 'Unauthorized';
+            // General Api Title
+            if (fetch.status >= 100 && fetch.status < 200) return 'Informational';
+            if (fetch.status >= 200 && fetch.status < 300) return 'Sukses';
+            if (fetch.status >= 300 && fetch.status < 400) return 'Redirection';
+            if (fetch.status >= 400 && fetch.status < 500) return 'Request Failed';
+            if (fetch.status >= 500 && fetch.status < 600) return 'Server Error';
+        }
+
+        if (fetch.code !== undefined){
+            if(fetch.code == 'ERR_NETWORK') return 'Jaringan Gagal';
+        }
+        // General Api Error
+        if(fetch.response !== undefined){
+            if(fetch.response.error) return fetch.response.error;
+        }
+        
+        if(fetch instanceof AxiosError) return 'Axios Error';
+        else                                 return 'Request Error'; 
+    }
+    const generateApiTitleByResponse = (fetch)=>{
+        var title = 'Error';        
+        
+        if (fetch.code){
             if(fetch.code == 'ERR_NETWORK') title = 'Jaringan Gagal';
         }
         // General Api Error
@@ -61,29 +77,13 @@ export const useApiService = ()=>{
             if(fetch.response.error) title = fetch.response.error;
         }
         else if(fetch instanceof AxiosError) title = 'Axios Error';
-        else                                 title = '';  
-
-        return title;       
+        else                                 title = 'Request Failed';  
+               
+        return title;
     }
-    const generateApiMessage = (fetch,custom=()=>{return undefined})=>{
-        var custom_msg = custom(fetch);
-        var msg = '';
-
-        // If custom exist
-        if ( custom_msg !== undefined ) return custom_msg;
-        // Specific Api Message
-        else if(fetch.status == 200) msg = 'Request berhasil dilakukan..';
-        else if(fetch.status == 401) msg = 'Request akses yang anda lakukan tidak sah..';
-        else if(fetch.status == 408) msg = 'Terjadi masalah pada jaringan anda..';
-        else if(fetch.status == 422) msg = fetch.response.data.message;
-        // General Api Message
-        else if (fetch.status >= 100 && fetch.status < 200) msg = 'Informational response.....';
-        else if (fetch.status >= 200 && fetch.status < 300) msg = 'Request berhasil dilakukan...';
-        else if (fetch.status >= 300 && fetch.status < 400) msg = 'Request yang anda lakukan tidak valid...';
-        else if (fetch.status >= 400 && fetch.status < 500) msg = 'Request yang anda lakukan tidak valid...';
-        else if (fetch.status >= 500 && fetch.status < 600) msg = 'Terjadi masalah pada server...';
-        // Specific Api Error 
-        else if (fetch.code){
+    const generateApiMessageByResponse = (fetch)=>{
+        var msg = 'Terjadi Kesalahan';        
+        if (fetch.code){
             if(fetch.code == 'ERR_NETWORK') msg = 'Terjadi Kesalahan Pada Jaringan Anda..';
         }
         // General Api Error
@@ -92,9 +92,46 @@ export const useApiService = ()=>{
             else if(fetch.response.error) msg = fetch.response.error;                
         }
         else if(fetch instanceof AxiosError) msg = fetch.message;
-        else                                 msg = '';  
+        else                                 msg = 'Terjadi Kesalahan pada request';  
 
         return msg;
+    }
+    const generateApiMessage = (fetch,custom=()=>{return undefined})=>{
+        var custom_msg = custom(fetch);
+        
+        // If custom exist
+        if ( custom_msg !== undefined ) return custom_msg;
+
+        // If By Status
+        if(fetch.status){
+            // Specific Api Message
+            if(fetch.status == 200) return 'Request berhasil dilakukan..';
+            if(fetch.status == 401) return 'Request akses yang anda lakukan tidak sah..';
+            if(fetch.status == 408) return 'Terjadi masalah pada jaringan anda..';
+            if(fetch.status == 422) return fetch.response.data.message;
+            // General Api Message
+            if (fetch.status >= 100 && fetch.status < 200) return 'Informational response.....';
+            if (fetch.status >= 200 && fetch.status < 300) return 'Request berhasil dilakukan...';
+            if (fetch.status >= 300 && fetch.status < 400) return 'Request yang anda lakukan tidak valid...';
+            if (fetch.status >= 400 && fetch.status < 500) return 'Request yang anda lakukan tidak valid...';
+            if (fetch.status >= 500 && fetch.status < 600) return 'Terjadi masalah pada server...';
+        }
+
+        // Specific Api Error 
+        if (fetch.code !== undefined){
+            if(fetch.code == 'ERR_NETWORK') return 'Terjadi Kesalahan Pada Jaringan Anda..';
+        }
+
+        // General Api Error
+        if (fetch.response !== undefined){
+            if(fetch.response.message)           return fetch.response.message;
+            else if(fetch.response.error)        return fetch.response.error;   
+            else if(fetch.response.data.message) return fetch.response.data.message;
+            else if(fetch.response.data.error)   return fetch.response.data.error;                
+        }
+
+        if(fetch instanceof AxiosError) return fetch.message;
+        else                            return 'Terjadi kesalahan..';  
     }
 
     const fetch = async (obj={})=>{
@@ -248,6 +285,8 @@ export const useApiService = ()=>{
         fetch:fetch,
         fetchAuth : fetchAuth,
         fetchApi : fetchApi,
+        generateApiMessageByResponse:generateApiMessageByResponse,
+        generateApiTitleByResponse:generateApiTitleByResponse,
         generateApiMessage:generateApiMessage,
         generateApiTitle:generateApiTitle,
         isAxiosError:isAxiosError,

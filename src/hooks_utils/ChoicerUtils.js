@@ -26,6 +26,16 @@ export function useChoicerController() {
             });
         },
 
+        showCustom : payload => {
+            dispatch({
+                type:Choicer.visible.show_custom,
+                payload:{ content:payload },
+            })
+            return new Promise((res,rej)=>{
+                resolveCallback = res;
+            });
+        },
+
         hide : ()=>{
             dispatch({
                 type:Choicer.visible.hide

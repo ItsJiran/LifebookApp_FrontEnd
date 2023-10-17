@@ -83,6 +83,9 @@ export default function MaterialsAddPage() {
     if(action) return;
     toggleAction(true);
 
+    // reformating date to use locale user time
+    e.date = e.date.toLocaleString();
+
     // Use Try And Catch So If There's an Error on the App Can Still Be Run
     try{
       const fetch = await ApiService.fetchAuth({

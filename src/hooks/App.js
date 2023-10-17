@@ -69,7 +69,6 @@ export const AppReducer = (state=AppInitial,action) => {
                 }
             };
         case AppAction.navigate.setStatus:
-            console.log(action);
             return {
                 ...state,
                 navigate:{

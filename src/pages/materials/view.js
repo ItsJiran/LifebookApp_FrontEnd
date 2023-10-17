@@ -34,7 +34,10 @@ export default function MaterialsViewPage() {
     // ========================================================================================================
     // -------------------------------------------- FUNCTIONS -------------------------------------------------
     // ========================================================================================================
-
+    const handleClick = ()=>{
+        if( AppService.navbar.get.status() == AppService.navbar.status().show ) AppService.navbar.set.status( AppService.navbar.status().hidden );
+        else                                                                    AppService.navbar.set.status( AppService.navbar.status().show )
+    }
 
     return (
         <div className="relative h-full w-full">
@@ -51,12 +54,12 @@ export default function MaterialsViewPage() {
 
             {/* Arrow */}
             <div className="w-full absolute bottom-5">
-                <LoadingContainer key='notifier-more' className="mx-auto h-fit w-fit shadow bg-blue-100"> 
+                <LoadingContainer onClick={handleClick} key='notifier-more' className="mx-auto h-fit w-fit shadow bg-blue-100"> 
                     { AppService.navbar.get.status() == AppService.navbar.status().show ? 
-                        <Icon onClick={()=>{AppService.navbar.set.status( AppService.navbar.status().hidden )}} className="h-5 w-5 filter-blue-dark-400" iconUrl={Iconsax.bold['arrow-bottom.svg']}/>
+                        <Icon className="h-5 w-5 filter-blue-dark-400" iconUrl={Iconsax.bold['arrow-bottom.svg']}/>
                     : '' }
                     { AppService.navbar.get.status() == AppService.navbar.status().hidden ? 
-                        <Icon onClick={()=>{AppService.navbar.set.status( AppService.navbar.status().show )}} className="h-5 w-5 filter-blue-dark-400" iconUrl={Iconsax.bold['arrow-up-2.svg']}/>
+                        <Icon className="h-5 w-5 filter-blue-dark-400" iconUrl={Iconsax.bold['arrow-up-2.svg']}/>
                     : '' }
                 </LoadingContainer>
             </div>

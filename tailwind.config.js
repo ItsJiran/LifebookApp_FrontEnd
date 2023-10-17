@@ -54,12 +54,12 @@ module.exports = {
       '2sm' : '0.7rem',
       '3sm' : '0.6rem',
       base: '1rem',
-      lg:'1.1rem',
-      xl: '1.25rem',
-      '2xl': '1.363rem',
-      '3xl': '1.953rem',
-      '4xl': '2.441rem',
-      '5xl': '3.052rem',
+      md:'1.1rem',
+      lg: '1.25rem',
+      xl: '1.3rem',
+      '2xl': '1.35rem',
+      '3xl': '1.4rem',
+      '4xl': '1.45rem',
     },
     extend: {
       zIndex:{

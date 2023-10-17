@@ -74,7 +74,7 @@ export default function IndexPage() {
       var msg = ApiService.generateApiMessage(fetch);
 
       // --- Handling Success
-      if(fetch.status == 200){
+      if(fetch.status >= 200 && fetch.status < 300){
         setApiMaterials({loading:false, error:false, data:fetch.response.data });  
       }
 
@@ -136,7 +136,7 @@ export default function IndexPage() {
       </div>
 
       {/* ================ CONTENT ================= */}
-      <LayerMain id='MAIN_CONTENT' className="px-3 py-2 overflow-auto h-full flex flex-col">
+      <LayerMain id='MAIN_CONTENT' className="py-2 px-3 relative overflow-auto h-full flex flex-col">
         <div id='WELCOME_HERO' className="h-fit w-full px-4 py-4 rounded-md min-h-[120px] bg-blue-400 relative mb-3">
 
           <CircleDecoration className="left-3 top-0 h-5 w-5 absolute" variant="white"/>
@@ -166,112 +166,109 @@ export default function IndexPage() {
             </div>
           </div>
 
-        <div id='MATERIALS_JOURNAL' className="w-full flex-1 overflow-auto h-fit">
+          <div className="w-full flex-1 overflow-auto h-fit">
+            <div id='MATERIALS_JOURNAL_CONTAINER' className="w-full flex flex-1 flex-col gap-3">
+                <AnimatePresence mode='wait'>
 
-          <div id='MATERIALS_JOURNAL_CONTAINER' className="w-full flex flex-1 flex-col gap-3">
-              <AnimatePresence mode='wait'>
-
-                {/* ================================================= */}
-                {/* ============= DISPLAY SKELETON DATA ============= */}
-                {/* ================================================= */}
-                { ApiMaterials.loading ?  
-                  <>
-                    <motion.div key='loading-1' {...{...AnimateMotions['fade-in'],...TimingMotions['ease-0.5']}} className="bg-white w-full rounded-md border-b-2 border-blue-200 h-fit flex px-2 py-2 gap-2">
-                        <div className="bg-blue-200 animate-pulse h-[30px] w-[30px] rounded-md"></div>
-                        <div className="flex-grow flex flex-col py-2 gap-2">
-                          <div className="rounded-md animate-pulse bg-blue-200 h-[5px] w-[80%]"></div>
-                          <div className="rounded-md animate-pulse bg-blue-200 h-[5px] w-[30%]"></div>
-                        </div>
-                    </motion.div>
-
-                    <motion.div key='loading-2' {...{...AnimateMotions['fade-in'],...TimingMotions['ease-0.5']}} className="bg-white w-full rounded-md border-b-2 border-blue-200 h-fit flex px-2 py-2 gap-2">
-                        <div className="bg-blue-200 animate-pulse h-[30px] w-[30px] rounded-md"></div>
-                        <div className="flex-grow flex flex-col py-2 gap-2">
-                          <div className="rounded-md animate-pulse bg-blue-200 h-[5px] w-[80%]"></div>
-                          <div className="rounded-md animate-pulse bg-blue-200 h-[5px] w-[30%]"></div>
-                        </div>
-                    </motion.div>
-
-                    <motion.div key='loading-3' {...{...AnimateMotions['fade-in'],...TimingMotions['ease-0.5']}} className="bg-white w-full rounded-md border-b-2 border-blue-200 h-fit flex px-2 py-2 gap-2">
-                        <div className="bg-blue-200 animate-pulse h-[30px] w-[30px] rounded-md"></div>
-                        <div className="flex-grow flex flex-col py-2 gap-2">
-                          <div className="rounded-md animate-pulse bg-blue-200 h-[5px] w-[80%]"></div>
-                          <div className="rounded-md animate-pulse bg-blue-200 h-[5px] w-[30%]"></div>
-                        </div>
-                    </motion.div>
-                  </>
-                : '' }
-
-                {/* ============================================== */}
-                {/* ============= DISPLAY FETCH DATA ============= */}
-                {/* ============================================== */}
-                {
-                  !ApiMaterials.loading && ApiMaterials.data.length > 0 && !ApiMaterials.error ?
+                  {/* ================================================= */}
+                  {/* ============= DISPLAY SKELETON DATA ============= */}
+                  {/* ================================================= */}
+                  { ApiMaterials.loading ?  
                     <>
-                      {ApiMaterials.data.map((data)=>{ 
-                        const dateTime = DecodeDateTime(data.date,' ');                      
-
-                        console.log(dateTime);
-
-                        return (
-
-                        <motion.div key={data.id} {...{...AnimateMotions['fade-in'],...TimingMotions['ease-0.5']}} className="bg-white w-full rounded-md border-b-2 border-blue-200 h-fit flex px-2 py-2 gap-2">
-                          <div className="h-[30px] w-[30px] rounded-md" onClick={()=>{ onClickMaterial(data.id) }}>
-                            <Icon className="h-full w-full filter-blue-400" iconUrl={Iconsax.bold['book-square.svg']}/>
+                      <motion.div key='loading-1' {...{...AnimateMotions['fade-in'],...TimingMotions['ease-0.5']}} className="bg-white w-full rounded-md border-b-2 border-blue-200 h-fit flex px-2 py-2 gap-2">
+                          <div className="bg-blue-200 animate-pulse h-[30px] w-[30px] rounded-md"></div>
+                          <div className="flex-grow flex flex-col py-2 gap-2">
+                            <div className="rounded-md animate-pulse bg-blue-200 h-[5px] w-[80%]"></div>
+                            <div className="rounded-md animate-pulse bg-blue-200 h-[5px] w-[30%]"></div>
                           </div>
+                      </motion.div>
 
-                          <div className="flex-grow flex flex-col pt-1 pb-1">
-                            <div className="w-fit h-fit mb-[2px]" onClick={()=>{ onClickMaterial(data.id) }}>
-                              <h2 className="text-1sm text-blue-dark-300 font-semibold tracking-wide">{data.title}</h2>
+                      <motion.div key='loading-2' {...{...AnimateMotions['fade-in'],...TimingMotions['ease-0.5']}} className="bg-white w-full rounded-md border-b-2 border-blue-200 h-fit flex px-2 py-2 gap-2">
+                          <div className="bg-blue-200 animate-pulse h-[30px] w-[30px] rounded-md"></div>
+                          <div className="flex-grow flex flex-col py-2 gap-2">
+                            <div className="rounded-md animate-pulse bg-blue-200 h-[5px] w-[80%]"></div>
+                            <div className="rounded-md animate-pulse bg-blue-200 h-[5px] w-[30%]"></div>
+                          </div>
+                      </motion.div>
+
+                      <motion.div key='loading-3' {...{...AnimateMotions['fade-in'],...TimingMotions['ease-0.5']}} className="bg-white w-full rounded-md border-b-2 border-blue-200 h-fit flex px-2 py-2 gap-2">
+                          <div className="bg-blue-200 animate-pulse h-[30px] w-[30px] rounded-md"></div>
+                          <div className="flex-grow flex flex-col py-2 gap-2">
+                            <div className="rounded-md animate-pulse bg-blue-200 h-[5px] w-[80%]"></div>
+                            <div className="rounded-md animate-pulse bg-blue-200 h-[5px] w-[30%]"></div>
+                          </div>
+                      </motion.div>
+                    </>
+                  : '' }
+
+                  {/* ============================================== */}
+                  {/* ============= DISPLAY FETCH DATA ============= */}
+                  {/* ============================================== */}
+                  {
+                    !ApiMaterials.loading && ApiMaterials.data.length > 0 && !ApiMaterials.error ?
+                      <>
+                        {ApiMaterials.data.map((data)=>{ 
+                          const dateTime = DecodeDateTime(data.date,' ');                      
+
+                          return (
+
+                          <motion.div key={data.id} {...{...AnimateMotions['fade-in'],...TimingMotions['ease-0.5']}} className="shadow bg-white w-full rounded-md border-b-2 border-blue-200 h-fit flex px-2 py-2 gap-2">
+                            <div className="h-[30px] w-[30px] rounded-md" onClick={()=>{ onClickMaterial(data.id) }}>
+                              <Icon className="h-full w-full filter-blue-400" iconUrl={Iconsax.bold['book-square.svg']}/>
                             </div>
 
-                            <div className="text-2sm text-blue-dark-100 tracking-wide flex gap-1 font-medium">
-                              <div className="flex gap-1 align-center items-center">
-                                <Icon className="w-[13px] h-[13px] filter-blue-dark-100" iconUrl={Iconsax.bold['clock.svg']}/>
-                                <label> { dateTime.date.day + ' ' + getMonthName(dateTime.date.month-1,true) + ' ' + dateTime.date.year} </label>
+                            <div className="flex-grow flex flex-col pt-1 pb-1">
+                              <div className="w-fit h-fit mb-[2px]" onClick={()=>{ onClickMaterial(data.id) }}>
+                                <h2 className="text-1sm text-blue-dark-300 font-semibold tracking-wide">{data.title}</h2>
                               </div>
-                              |
-                              <label> { dateTime.time.hour + ':' + dateTime.time.minute} </label>
-                            </div>
-                          </div> 
 
+                              <div className="text-2sm text-blue-dark-100 tracking-wide flex gap-1 font-medium">
+                                <div className="flex gap-1 align-center items-center">
+                                  <Icon className="w-[13px] h-[13px] filter-blue-dark-100" iconUrl={Iconsax.bold['clock.svg']}/>
+                                  <label> { dateTime.date.day + ' ' + getMonthName(dateTime.date.month-1,true) + ' ' + dateTime.date.year} </label>
+                                </div>
+                                |
+                                <label> { dateTime.time.hour + ':' + dateTime.time.minute} </label>
+                              </div>
+                            </div> 
+
+                          </motion.div>
+                          
+                          ); })
+                        }
+                      </>
+                    : ''
+                  }
+                  {
+                    !ApiMaterials.loading && ApiMaterials.data.length == 0 && !ApiMaterials.error ? 
+                      <>
+                        <motion.div key='no-content' {...{...AnimateMotions['fade-in'],...TimingMotions['ease-0.5']}} className="flex flex-col items-center text-center w-fit mx-auto h-fit flex px-2 py-2 text-1sm text-blue-dark-200 tracking-wide">
+                          <h2 className="font-semibold">Tidak Ditemukan</h2>
+                          <p className="mb-2">Klik tambah untuk membuat materi jurnal</p>
+                          <Icon onClick={()=>{navigate('/materials/add',{replace:true})}} className="h-7 w-7 filter-blue-400 hover:filter-blue-dark-300" iconUrl={Iconsax.bold['add-circle.svg']}/>
                         </motion.div>
-                        
-                        ); })
-                      }
-                    </>
-                  : ''
-                }
-                {
-                  !ApiMaterials.loading && ApiMaterials.data.length == 0 && !ApiMaterials.error ? 
-                    <>
-                      <motion.div key='no-content' {...{...AnimateMotions['fade-in'],...TimingMotions['ease-0.5']}} className="flex flex-col items-center text-center w-fit mx-auto h-fit flex px-2 py-2 text-1sm text-blue-dark-200 tracking-wide">
-                        <h2 className="font-semibold">Tidak Ditemukan</h2>
-                        <p className="mb-2">Klik tambah untuk membuat materi jurnal</p>
-                        <Icon onClick={()=>{navigate('/materials/add',{replace:true})}} className="h-7 w-7 filter-blue-400 hover:filter-blue-dark-300" iconUrl={Iconsax.bold['add-circle.svg']}/>
-                      </motion.div>
-                    </>
-                  : ''
-                }
+                      </>
+                    : ''
+                  }
 
-                {/* ============================================ */}
-                {/* ============= ERROR FETCH DATA ============= */}
-                {/* ============================================ */}
-                {
-                  !ApiMaterials.loading && ApiMaterials.error ? 
-                    <>
-                      <motion.div key='error-fetch' {...{...AnimateMotions['fade-in'],...TimingMotions['ease-0.5']}} className="flex flex-col items-center text-center w-fit mx-auto h-fit flex px-2 py-2 text-1sm text-blue-dark-200 tracking-wide">
-                        <h2 className="font-semibold">Terjadi Kesalahan</h2>
-                        <p className="mb-2">Klik tambah dibawah ini untuk mencoba lagi</p>
-                        <div className="h-fit w-fit px-1 py-1 bg-blue-400 rounded-full"><Icon onClick={fetchMaterials} className="h-4 w-4 filter-white hover:filter-blue-dark-300" iconUrl={Iconsax.bold['refresh.svg']}/>
-                        </div>
-                      </motion.div>
-                    </>
-                  : ''
-                }
+                  {/* ============================================ */}
+                  {/* ============= ERROR FETCH DATA ============= */}
+                  {/* ============================================ */}
+                  {
+                    !ApiMaterials.loading && ApiMaterials.error ? 
+                      <>
+                        <motion.div key='error-fetch' {...{...AnimateMotions['fade-in'],...TimingMotions['ease-0.5']}} className="flex flex-col items-center text-center w-fit mx-auto h-fit flex px-2 py-2 text-1sm text-blue-dark-200 tracking-wide">
+                          <h2 className="font-semibold">Terjadi Kesalahan</h2>
+                          <p className="mb-2">Klik tambah dibawah ini untuk mencoba lagi</p>
+                          <div className="h-fit w-fit px-1 py-1 bg-blue-400 rounded-full"><Icon onClick={fetchMaterials} className="h-4 w-4 filter-white hover:filter-blue-dark-300" iconUrl={Iconsax.bold['refresh.svg']}/>
+                          </div>
+                        </motion.div>
+                      </>
+                    : ''
+                  }
 
-            </AnimatePresence>
-          </div>
+              </AnimatePresence>
+            </div>
         </div>
       </LayerMain>
     </>

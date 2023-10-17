@@ -49,7 +49,7 @@ export function RootLayouts({ children }) {
                 : '' }
                 {/* CHOICER POP OVER */}
                 {
-                    ChoicerController.state.show ? 
+                    ChoicerController.state.show && !ChoicerController.state.custom ? 
                         <div key='choicer' className="absolute top-0 h-full left-0 w-full overflow-y-hidden">
                             <div className="sticky h-full top-0 items-center flex z-50 justify-center">
                             
@@ -63,6 +63,12 @@ export function RootLayouts({ children }) {
                         </div> 
                     : ''
                 }
+                {/* CHOICER POP OVER */}
+                {
+                    ChoicerController.state.show && ChoicerController.state.custom ? <> { ChoicerController.state.elm } </> : ''
+                }
+
+
             </AnimatePresence>
 
             {/* FOR EVERY NOTIFICATION, POPUP AND TOAST */}
@@ -71,7 +77,7 @@ export function RootLayouts({ children }) {
                     {/* LOADING */}
                     { notifier.loading ? 
                         <div key='loading' className="absolute w-fit top-10 h-full left-[50%] -translate-x-[50%]">
-                            <div className="sticky top-0 items-center flex z-[51] justify-center">
+                            <div className="sticky top-0 items-center flex z-[99] justify-center">
                                 <LoadingContainer key='test' animate={{...AnimateMotions['swipe-top-fade-in'], ...TimingMotions['ease-0.5']}} className='mx-auto sticky top-0'>
                                     <Loading className="h-6 w-6 filter-blue-400"/> 
                                 </LoadingContainer>
@@ -82,7 +88,7 @@ export function RootLayouts({ children }) {
 
                 {/* NOTIFICATION POP OVER */}
                 <div className="absolute top-4 h-full left-0 w-full">
-                    <div className="sticky mx-auto overflow-y-auto w-fit z-50 top-4">
+                    <div className="sticky mx-auto overflow-y-auto w-fit z-[51] top-4">
                         <AnimatePresence mode='sync'>
                             {
                                 notifier.notification.length > 0 ? notifier.notification.map((item, index) => { if(index >= notifier.notification.length - 3)

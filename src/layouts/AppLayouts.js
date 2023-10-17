@@ -1,5 +1,5 @@
 import React from "react";
-import { Routes, Route, useLocation } from "react-router-dom";
+import { Routes, Route, useLocation, Outlet } from "react-router-dom";
 import { LayerBackground, LayerMain } from "../components/Layers";
 
 import IndexPage from "../pages";
@@ -12,6 +12,8 @@ import MaterialsViewPage from "../pages/materials/view";
 import { useAuthService } from "../hooks_utils/AuthUtils";
 import { useAppService } from "../hooks_utils/AppUtils";
 import JournalsDate from "../pages/journals/index.date";
+import RoutinesPage from "../pages/routines";
+import JournalsAddPage from "../pages/journals/add";
 
 export function AppLayouts({ children }) {
     const location = useLocation();
@@ -40,7 +42,11 @@ export function AppLayouts({ children }) {
                     </Route>
 
                     <Route element={<WhiteBG style={AppNavbarClass}/>}>
-                        <Route exact path='/materials/view/:id' Component={WhiteBG}></Route>
+                        <Route exact path='/materials/view/:id'></Route>
+                    </Route>
+
+                    <Route element={<div className="bg-white" style={AppNavbarClass}/>}>
+                        <Route exact path='/journals/add'></Route>
                     </Route>
                                         
                     {/* -------------- ADMIN USER --------------- */}
@@ -71,8 +77,10 @@ export function AppLayouts({ children }) {
                     <Route exact path='/' Component={IndexPage}></Route>
                     <Route exact path='/dashboard' Component={IndexPage}></Route>
                     <Route exact path='/journals' Component={JournalsPage}></Route>
+                    <Route exact path='/journals/add' Component={JournalsAddPage}></Route>
                     <Route exact path='/journals/date' Component={JournalsDate}></Route>
-                    <Route exact path='/routines' Component={IndexPage}></Route>
+                    <Route exact path='/journals/:year/:month/:day' Component={JournalsDate}></Route>
+                    <Route exact path='/routines' Component={RoutinesPage}></Route>
                     <Route exact path='/materials/view/:id' Component={MaterialsViewPage}></Route>
 
                     {/* -------------- ADMIN USER --------------- */}
