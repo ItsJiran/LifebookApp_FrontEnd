@@ -76,7 +76,7 @@ export default function JournalsAddPage() {
   // ------------------------------------------- REACT EFFECT -----------------------------------------------
   // ========================================================================================================
   React.useEffect(()=>{
-    var storage = JSON.parse(window.sessionStorage.getItem('UnsavedEditorJS__Input'));
+    var storage = JSON.parse(window.localStorage.getItem('UnsavedEditorJS__Input'));
     for (let key in storage) setValue(key, storage[key]);
 
     AppService.navigate.set.status( AppService.navigate.status().validate );
@@ -85,12 +85,7 @@ export default function JournalsAddPage() {
         message:'Apakah anda yakin ingin berpindah halaman? data yang anda buat tidak akan tersimpan..'
     });
 
-    if (ejInstance.current === null) initEditor();
-
-    return () => {
-      ejInstance?.current?.destroy();
-      ejInstance.current = null;
-    };
+    if (editorState === null) initEditor();
   },[]);
   React.useEffect(()=>{
     if(Object.keys(formState.errors).length > 0 && zoom) { 
@@ -101,7 +96,7 @@ export default function JournalsAddPage() {
   },[formState.errors]);
   React.useEffect(() => {
     watch((data) => {
-      window.sessionStorage.setItem('UnsavedEditorJS__Input', JSON.stringify(watch(data)));
+      window.localStorage.setItem('UnsavedEditorJS__Input', JSON.stringify(watch(data)));
     });
   }, [watch]);
   
@@ -159,8 +154,8 @@ export default function JournalsAddPage() {
 
         toggleAction(false);
 
-        window.sessionStorage.removeItem('UnsavedEditorJS__Input');
-        window.sessionStorage.removeItem('UnsavedEditorJS__Blocks');
+        window.localStorage.removeItem('UnsavedEditorJS__Input');
+        window.localStorage.removeItem('UnsavedEditorJS__Blocks');
 
         return NavigateService.redirect('/journals');
       }
@@ -212,7 +207,7 @@ export default function JournalsAddPage() {
        },
        onChange: async () => {
          let content = await editor.saver.save();
-         window.sessionStorage.setItem('UnsavedEditorJS__Blocks',JSON.stringify(content));
+         window.localStorage.setItem('UnsavedEditorJS__Blocks',JSON.stringify(content));
        },
        placeholder:'Write here..!!',
        tools:{
@@ -239,8 +234,8 @@ export default function JournalsAddPage() {
        },
        defaultBlock: 'break_paragraph',
        autofocus: true,
-       data: window.sessionStorage.getItem('UnsavedEditorJS__Blocks') !== null ? JSON.parse( window.sessionStorage.getItem('UnsavedEditorJS__Blocks') ) : {},
-     });
+       data: window.localStorage.getItem('UnsavedEditorJS__Blocks') !== null ? JSON.parse( window.localStorage.getItem('UnsavedEditorJS__Blocks') ) : {},
+     });    
      setEditorState(editor);
    };
 
