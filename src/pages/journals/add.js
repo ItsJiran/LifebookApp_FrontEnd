@@ -7,9 +7,7 @@ import EditorJS from "@editorjs/editorjs";
 import EditorChecklist from "@editorjs/checklist";
 import EditorHeader from "@editorjs/header";
 import EditorList from "@editorjs/list";
-import EditorNestedList from "@editorjs/nested-list";
 import EditorParagraph from "@editorjs/paragraph";
-import EditorQuote from "@editorjs/quote";
 import EditorDrag from "editorjs-drag-drop";
 
 class CustomEditorParagraph extends EditorParagraph{
@@ -115,7 +113,7 @@ export default function JournalsAddPage() {
     setAction(action);
     
     if(action) AppService.navigate.set.status( AppService.navigate.status().fixed );
-    else       AppService.navigate.set.status( AppService.navigate.status().initial );
+    else       AppService.navigate.set.status( AppService.navigate.status().validate );
 
     if(!action) AppService.navbar.set.status( AppService.navbar.status().show );
     else        AppService.navbar.set.status( AppService.navbar.status().hidden );
@@ -133,7 +131,8 @@ export default function JournalsAddPage() {
     e.editor_json = JSON.stringify( await editorState.save() );
     
     // reformating date to iso format
-    e.date = e.date.toLocaleDateString();
+    e.date = e.date.getFullYear() + '-' + ( e.date.getMonth() + 1 ) + '-' + e.date.getDate();
+    console.log(e.date);
 
     // Use Try And Catch So If There's an Error on the App Can Still Be Run
     try{
@@ -273,7 +272,6 @@ export default function JournalsAddPage() {
 
       <LayerMain id='MAIN_CONTENT' className="px-3 py-2 overflow-auto h-full flex flex-col">
         <form ref={formRef} className='h-full relative flex flex-col' encType="multipart/form-data" onSubmit={handleSubmit(formSubmit)}>
-
 
             <div className="relative flex flex-col overflow-hidden" style={ !zoom ? {} : {display:'none'} }>
                 <label className="text-1sm text-blue-dark-300 mb-2 font-medium tracking-wide">Title</label>

@@ -41,12 +41,77 @@ export const Input = React.forwardRef( ({ register, placeholder, type, container
     setFocus(false);
   }
 
+  let input = undefined;
+
+  if(type == 'textarea') input = <textarea {...register} onFocus={trueFocus} onBlur={falseFocus} type={type} placeholder={placeholder} className={inputClass} />;
+  else                   input = <input {...register} onFocus={trueFocus} onBlur={falseFocus} type={type} placeholder={placeholder} className={inputClass} />;
+      
+
   // ========================================================================================================
   // ---------------------------------------------- RENDER --------------------------------------------------
   // ========================================================================================================
   return (
     <div className={CONTAINER_CLASS + ' ' + containerClass}>
-      <input {...register} onFocus={trueFocus} onBlur={falseFocus} type={type} placeholder={placeholder} className={inputClass} />
+      {input}
+
+      {/* NOTIF LABEL */}
+      <div className="absolute gap-1.5 box-border h-[46px] top-0 right-0 w-fit px-2 items-center content-center flex flex-row-reverse">
+        { isError ? <div className={NOTIF_LABEL_CONTAINER}> <label className={ERROR_NOTIF_LABEL_CLASS} style={{backgroundImage:'Url(' + Iconsax.bold['info-circle'] + ')'}} /> </div> : '' }
+      </div>
+      
+      {/* NOTIF MESSAGE LABEL */}
+      <div className="absolute top-[50px] z-10 w-full h-fit">
+        <AnimatePresence mode='wait'>
+          { 
+            isError && isFocus ? 
+              <motion.div className="w-full h-fit px-4 py-3 bg-red-400 rounded-md border-b-2 border-red-500 text-1sm text-white"
+                key='error-message'
+                initial={{opacity:0, y:'-5'}}
+                animate={{opacity:1, y:'0'}}
+                exit={{opacity:0, y:'-5'}}
+                transition={{ ease: [0.08, 0.65, 0.53, 0.96], duration: 0.5 }}
+              > 
+                <div className={ERROR_MESSAGE_ARROW} style={{backgroundImage:'Url(' + Iconsax.bold['arrow-up-1'] + ')'}} /> 
+                { Errors.message }
+              </motion.div>
+            : ''
+          }
+        </AnimatePresence>
+      </div>
+    </div>
+  );    
+})
+
+export const Select = React.forwardRef( ({ register, placeholder, type, containerClass = '', className = '', formState, options },ref) => {
+  // ========================================================================================================
+  // ---------------------------------------- STATE AND VARIABLES -------------------------------------------
+  // ========================================================================================================
+  const [isFocus,setFocus] = React.useState(false);
+  const Errors             = formState.errors[register.name]; 
+  const isError            = Errors !== undefined;
+
+  let inputClass = !isError ? DEFAULT_INPUT_CLASS + ' ' + className 
+                            : ERROR_INPUT_CLASS   + ' ' + className ;
+
+  function trueFocus(){
+    setFocus(true);
+  }
+  function falseFocus(){
+    setFocus(false);
+  }
+
+  // ========================================================================================================
+  // ---------------------------------------------- RENDER --------------------------------------------------
+  // ========================================================================================================
+  return (
+    <div className={CONTAINER_CLASS + ' ' + containerClass}>
+      <select {...register} onFocus={trueFocus} onBlur={falseFocus} type={type} placeholder={placeholder} className={inputClass}>
+        {
+            options.map((item,index)=>{
+              return <option value={item}>{item}</option>;
+            })
+        }
+      </select>
 
       {/* NOTIF LABEL */}
       <div className="absolute gap-1.5 box-border h-[46px] top-0 right-0 w-fit px-2 items-center content-center flex flex-row-reverse">

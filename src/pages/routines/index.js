@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useLocation, Route, Routes, useMatches, Link } from "react-router-dom";
+import { useLocation, Route, Routes, useMatches, Link, useNavigate } from "react-router-dom";
 
 import { AnimatePresence } from "framer-motion";
 import { FilePath, Iconsax } from "../../utils";
@@ -18,6 +18,7 @@ export default function RoutinesPage() {
   // ---------------------------------------- STATE AND VARIABLES -------------------------------------------
   // ========================================================================================================
   const location = useLocation();
+  const navigate = useNavigate();
 
   // -- Service And Controller
   const AppService = useAppService();
@@ -61,18 +62,26 @@ export default function RoutinesPage() {
         </div>
         
         <div className="h-fit w-fit">
-
+          <Icon onClick={async ()=>{navigate('/routines/add',{replace:true})}} className="h-6 w-6 filter-blue-400 hover:filter-blue-dark-300" iconUrl={Iconsax.bold['add-circle.svg']}/>
         </div>
       </div>
 
       {/* ================ CONTENT ================= */}
       <LayerMain id='MAIN_CONTENT' className="py-2 overflow-y-auto h-full overflow-x-hidden">
 
-            <div className='h-full w-full flex flex-col justify-center items-center text-1sm text-blue-dark-300 tracking-wide gap-2'>
-                <Icon iconUrl={ FilePath.assets + 'svg/construction.svg' } className="w-[300px] h-[200px]"/>
-                <h2 className="text-[16px] font-bold mt-4 leading-3">Sedang Dibuat</h2>
-                <p className="mb-2 text-center mx-4">Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s.</p>
+          <div id='MATERIALS_JOURNAL_HEADER' className="mx-3 h-fit flex justify-between mb-4 relative border-b-[2px] border-blue-light-100 items-center">
+            {/* ------------ Table Tab ------------- */}
+            <div className="flex relative gap-2">          
+              <Link to={'/routines'} replace className="relative text-sm pb-2 font-semibold text-center px-1 text-blue-dark-400 tracking-wider block w-fit">
+                Overview
+                <div className="absolute h-full w-full border-b-[2.5px] border-blue-400 -bottom-[2.3px] left-0"></div>
+              </Link>
+
+              <Link to={'/routines/today'} replace className="text-sm pb-2 font-semibold text-center px-1 text-blue-dark-200 tracking-wider block w-fit">
+                Today
+              </Link>
             </div>
+          </div>
 
       </LayerMain>
     </>

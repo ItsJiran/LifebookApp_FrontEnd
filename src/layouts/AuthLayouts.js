@@ -7,8 +7,11 @@ import { AnimatePresence } from "framer-motion";
 import LoginPage from "../pages/login";
 import RegisterPage from "../pages/register";
 import { CircleDecoration } from "../components/Components";
+import { useLocation } from "react-router-dom";
 
 export function AuthLayouts({ children, animate }) {
+
+    const location = useLocation();
 
     return (
         <div className="flex flex-col justify-center container box-border relative min-h-screen bg-white w-full">

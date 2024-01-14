@@ -87,7 +87,6 @@ export default function JournalsPage() {
   const retryDeleteElmChoices = (title,message) => {
     return ( 
       <>
-
           <h2 className="text-base my-2 mb-2 font-bold text-center leading-3 tracking-wider text-blue-dark-300">{title}</h2>
           <p className="text-sm text-center leading-3 tracking-wider text-blue-dark-300 mb-2">{message}</p>
 
@@ -116,6 +115,7 @@ export default function JournalsPage() {
 
     // fetchJournals
     fetchJournals();
+    AppService.navbar.set.status(AppService.navbar.status().show);
 
   },[]);
 
@@ -287,6 +287,12 @@ export default function JournalsPage() {
           }
       }
     }
+
+    if(result == 'View'){
+      ChoicerController.hide();
+      return navigate('/journals/edit/'+id,{replace:true});
+    } 
+
   }
   const refresh = async()=>{
     await fetchJournals();

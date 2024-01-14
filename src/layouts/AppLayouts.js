@@ -5,15 +5,23 @@ import { LayerBackground, LayerMain } from "../components/Layers";
 import IndexPage from "../pages";
 import JournalsPage from "../pages/journals";
 
-import { LightBlueBG, WhiteBG } from "../pages/background";
-import { NavigationBar } from "../pages/navigation";
-import MaterialsAddPage from "../pages/materials/add";
-import MaterialsViewPage from "../pages/materials/view";
 import { useAuthService } from "../hooks_utils/AuthUtils";
 import { useAppService } from "../hooks_utils/AppUtils";
-import JournalsDate from "../pages/journals/index.date";
+
+import { LightBlueBG, WhiteBG } from "../pages/background";
+import { NavigationBar } from "../pages/navigation";
+
+import MaterialsAddPage from "../pages/materials/add";
+import MaterialsViewPage from "../pages/materials/view";
+
 import RoutinesPage from "../pages/routines";
+import RoutinesTodayPage from "../pages/routines/index.today";
+import RoutinesAddPage from "../pages/routines/add";
+import RoutinesViewPage from "../pages/routines/view";
+
+import JournalsDate from "../pages/journals/index.date";
 import JournalsAddPage from "../pages/journals/add";
+import JournalsEditPage from "../pages/journals/edit";
 
 export function AppLayouts({ children }) {
     const location = useLocation();
@@ -39,6 +47,7 @@ export function AppLayouts({ children }) {
                         <Route exact path='/journals/date' ></Route>
 
                         <Route exact path='/routines'></Route>
+                        <Route exact path='/routines/today'></Route>            
                     </Route>
 
                     <Route element={<WhiteBG style={AppNavbarClass}/>}>
@@ -47,6 +56,10 @@ export function AppLayouts({ children }) {
 
                     <Route element={<div className="bg-white" style={AppNavbarClass}/>}>
                         <Route exact path='/journals/add'></Route>
+                        <Route exact path='/journals/edit/*'></Route>
+
+                        <Route exact path='/routines/add'></Route>
+                        <Route exact path='/routines/view/*'></Route>
                     </Route>
                                         
                     {/* -------------- ADMIN USER --------------- */}
@@ -78,9 +91,13 @@ export function AppLayouts({ children }) {
                     <Route exact path='/dashboard' Component={IndexPage}></Route>
                     <Route exact path='/journals' Component={JournalsPage}></Route>
                     <Route exact path='/journals/add' Component={JournalsAddPage}></Route>
+                    <Route exact path='/journals/edit/:id' Component={JournalsEditPage}></Route>
                     <Route exact path='/journals/date' Component={JournalsDate}></Route>
                     <Route exact path='/journals/:year/:month/:day' Component={JournalsDate}></Route>
                     <Route exact path='/routines' Component={RoutinesPage}></Route>
+                    <Route exact path='/routines/today' Component={RoutinesTodayPage}></Route>
+                    <Route exact path='/routines/add' Component={RoutinesAddPage}></Route>
+                    <Route exact path='/routines/view' Component={RoutinesViewPage}></Route>
                     <Route exact path='/materials/view/:id' Component={MaterialsViewPage}></Route>
 
                     {/* -------------- ADMIN USER --------------- */}
