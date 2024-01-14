@@ -284,7 +284,7 @@ export default function JournalsAddPage() {
                     </div>
                     <div className="flex-1">
                     <label className="text-1sm text-blue-dark-300 font-medium tracking-wide">Hour</label>
-                    <Input formState={formState} register={regisrator.time} type='time' className='h-fit py-[3px]' placeholder='Time' />
+                    {/* <Input formState={formState} register={regisrator.time} type='time' className='h-fit py-[3px]' placeholder='Time' /> */}
                     </div>
                 </div>
 
