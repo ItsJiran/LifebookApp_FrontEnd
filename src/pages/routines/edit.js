@@ -4,20 +4,6 @@ import { AxiosError } from "axios";
 import { yupResolver } from '@hookform/resolvers/yup';
 import { AnimatePresence, motion } from "framer-motion";
 
-// EDITOR JS
-import EditorJS from "@editorjs/editorjs";
-import EditorChecklist from "@editorjs/checklist";
-import EditorHeader from "@editorjs/header";
-import EditorList from "@editorjs/list";
-import EditorParagraph from "@editorjs/paragraph";
-import EditorDrag from "editorjs-drag-drop";
-
-class CustomEditorParagraph extends EditorParagraph{
-  validate(savedData) {
-    return true;
-  }
-}
-
 import { Iconsax, TimingMotions, AnimateMotions, filterColor, filterAccurate, getLocaleTime, getLocaleDate, FilePath } from "../../utils";
 import { useApiService } from "../../hooks_utils/ApiUtils";
 
@@ -31,13 +17,14 @@ import { useNavigateService } from "../../hooks_utils/NavigateUtils";
 import { useChoicerController } from "../../hooks_utils/ChoicerUtils";
 
 import { useForm } from "react-hook-form";
+import { useNavigate, useParams } from "react-router-dom";
 
-export default function RoutinesAddPage() {
+export default function RoutinesEditPage() {
   // ========================================================================================================
   // ---------------------------------------- STATE AND VARIABLES -------------------------------------------
   // ========================================================================================================
   const formRef = useRef(null);
-  const ejInstance = useRef(null);
+  const params = useParams();
 
   // -- Service And Controller
   const AppService = useAppService();
@@ -64,6 +51,12 @@ export default function RoutinesAddPage() {
   });
 
   // -- Dependencies
+  const [informState, setInformState] = React.useState({
+    loading:false,
+    error:false,
+    data:{},
+  });
+
   const routines_types = ["checklist","incremental"];
   const [type, setType] = React.useState(routines_types[0]);
   const [max, setMax] = React.useState(1);
@@ -158,7 +151,9 @@ export default function RoutinesAddPage() {
   // ------------------------------------------- REACT EFFECT -----------------------------------------------
   // ========================================================================================================
   React.useEffect(()=>{
+    fetchInformation();
     fetchIcons();
+
     AppService.navigate.set.status( AppService.navigate.status().validate );
     AppService.navigate.set.message({
         title:'Konfirmasi',
@@ -179,6 +174,86 @@ export default function RoutinesAddPage() {
   // ========================================================================================================
   // -------------------------------------------- FUNCTIONS -------------------------------------------------
   // ========================================================================================================
+  const fetchInformation = async () => {
+    if (informState.loading) return;    
+
+    setInformState({...informState, loading:true});
+    
+    try{
+      const fetch = await ApiService.fetchAuth({ slug: 'routine/info/' + params.id, method: 'get'});
+
+      // Generate Notification Title And Message
+      var title = ApiService.generateApiTitle(fetch);
+      var msg = ApiService.generateApiMessage(fetch);
+
+      // --- Handle Error Network
+      if (fetch.code == 'ERR_NETWORK') {
+          setInformState((prev) => ({ ...prev, loading:false, error: true }));
+          toggleAction(false);
+          return;
+      }
+
+      // --- Handling Success
+      if (fetch.status >= 200 && fetch.status < 300) {
+        let data = fetch.response.data;
+
+        setColor(data.color);
+        setFilterColor(data.filter_color);
+        setType(data.type);
+
+        setMax(data.max_val);
+        setIcon(data.icon);
+
+        setValue('title',data.title);
+        setValue('description',data.description);
+        setValue('type', data.type);
+        
+        let values = [];
+        
+        for( let key of period_keys ){
+          
+          if(data.period[key]) values.push(true);
+          else                 values.push(false);
+        }
+
+        setPeriodVals(values);
+        setInformState((prev) => ({ ...prev, error: false, data: data }));
+      }
+
+      // --- Handle Client Request Failed      
+      if (fetch.status > 400) {
+        if (ApiService.isAxiosError(fetch)) console.error(fetch);
+
+        NotifierController.addNotification({
+            title: title,
+            message: msg,
+            type: 'Error',
+        });
+
+        toggleAction(false);        
+        return NavigateService.redirect('/routines');
+    }
+
+      toggleAction(false);        
+      setInformState((prev)=>({ ...prev, loading:false}));
+    } catch(e) {
+      if (e instanceof Error || ApiService.isReturnError(e)) {
+        console.error('ERROR_INSTANCE', e);
+        if (e.isNotifier) {
+            NotifierController.addNotification({
+                title: e.title ? e.title : 'Terjadi Kesalahan Sistem',
+                message: e.message ? e.message : 'Terjadi kesalahan pada sistem yang sedang berjalan..',
+                type: 'Error',
+            })
+        }
+      } else {
+          console.error(e);
+      }
+
+      setInformState({...informState, loading:false});
+    }
+  }
+
   function toggleAction(action) {
     setAction(action);
     
@@ -215,7 +290,7 @@ export default function RoutinesAddPage() {
     else                        data.max = 1;
   
     try{
-      var fetch = await ApiService.fetchAuth({slug:'routines',data:data,method:'post'});
+      var fetch = await ApiService.fetchAuth({slug:'routine/'+params.id,data:data,method:'put'});
 
       // Generate Notification Title And Message
       var title = ApiService.generateApiTitle(fetch);
@@ -230,7 +305,7 @@ export default function RoutinesAddPage() {
         })
 
         toggleAction(false);
-        return NavigateService.redirect('/routines');
+        return NavigateService.redirect('/routines/view/'+params.id);
       }
 
       // --- Handle Client Request Failed
@@ -322,12 +397,16 @@ export default function RoutinesAddPage() {
     if(result == 'choice') return setIcon(data);
   }
 
+  const refresh = async () => {    
+    await fetchInformation();
+  }
+
   return (
     <>
       {/* ================== HEADER ==================== */}
       <div className="h-[40px] w-full px-3 py-2 box-border flex mt-2 justify-between">
         <div className="h-fit w-fit">
-            <Icon onClick={()=>{ NavigateService.redirectBasedApp('/routines'); }} className="h-6 w-6 filter-blue-400 cursor-pointer" iconUrl={Iconsax.bold["arrow-left-2"]} />
+            <Icon onClick={()=>{ NavigateService.redirectBasedApp('/routines/view/'+params.id); }} className="h-6 w-6 filter-blue-400 cursor-pointer" iconUrl={Iconsax.bold["arrow-left-2"]} />
         </div>
         
         <div className="h-fit w-fit flex gap-2 items-center">
@@ -336,88 +415,102 @@ export default function RoutinesAddPage() {
         </div>
         
         <div className="h-fit w-fit">
-          <Icon onClick={ clickSubmit } className="h-6 w-6 filter-blue-400 cursor-pointer" iconUrl={Iconsax.bold["add-circle.svg"]} />
+        { !informState.loading && !informState.error ? <>
+          <Icon onClick={ clickSubmit } className="h-6 w-6 filter-blue-400 cursor-pointer" iconUrl={Iconsax.bold["tick-circle.svg"]} />
+          </> : <></> }
         </div>
       </div>
 
       {/* ================ CONTENT ================= */}
 
       <LayerMain id='MAIN_CONTENT' className="px-3 py-2 overflow-auto h-full flex flex-col">
-        <form ref={formRef} className='h-full relative flex flex-col' encType="multipart/form-data" onSubmit={handleSubmit(formSubmit)}>
+        { informState.loading ? <>
+        
+        </> : <></> }
+        { !informState.loading && !informState.error ? <>
+          <form ref={formRef} className='h-full relative flex flex-col' encType="multipart/form-data" onSubmit={handleSubmit(formSubmit)}>
 
-            <div className="relative flex flex-col">
+<div className="relative flex flex-col">
 
-                <div className="w-min overflow-hidden mx-auto my-5 rounded-full px-4 py-4 aspect-square relative">
-                  <div style={{'backgroundColor':color}} className="absolute top-0 left-0 h-full w-full opacity-20"></div>
-                  <Icon style={{'filter':filterColorHtml}}  className="h-32 w-32 relative cursor-pointer" iconUrl={ FilePath.icons.routines + icon } />                              
-                </div>
+    <div className="w-min overflow-hidden mx-auto my-5 rounded-full px-4 py-4 aspect-square relative">
+      <div style={{'backgroundColor':color}} className="absolute top-0 left-0 h-full w-full opacity-20"></div>
+      <Icon style={{'filter':filterColorHtml}}  className="h-32 w-32 relative cursor-pointer" iconUrl={ FilePath.icons.routines + icon } />                              
+    </div>
 
-                <label className="text-1sm text-blue-dark-300 mb-2 font-medium tracking-wide">Title</label>
-                <Input formState={formState} register={regisrator.title} className='mb-2 h-fit py-[3px]' placeholder='Title' />
+    <label className="text-1sm text-blue-dark-300 mb-2 font-medium tracking-wide">Title</label>
+    <Input formState={formState} register={regisrator.title} className='mb-2 h-fit py-[3px]' placeholder='Title' />
 
-                <div className="flex justify-between gap-2 mb-3">
-                    <div className="flex-1">
-                        <label className="text-1sm text-blue-dark-300 block font-medium tracking-wide pb-2">Icon</label>
-                        <div onClick={onClickMaterial} className="flex cursor-pointer gap-2 items-center min-h-[40px] px-2 w-full text-sm border-b-2 border-blue-200 text-blue-dark-300">                            
-                            <Icon style={{'filter':filterColorHtml}} className="h-6 w-6 cursor-pointer" iconUrl={ FilePath.icons.routines + icon } />                            
-                            <label className='text-1sm cursor-pointer text-blue-dark-300 block font-medium'>{ icon }</label>
-                        </div>
-                    </div>
-                    <div className="flex-1">
-                        <label className="text-1sm text-blue-dark-300 block font-medium tracking-wide pb-2">Color</label>
-                        <div className="flex gap-2 items-center min-h-[40px] px-2 w-full text-sm border-b-2 border-blue-200 text-blue-dark-300">
-                            <input id='color' type='color' onChange={(val)=>{ setColor(val.target.value); setFilterColor( filterColor(val.target.value)) }} value={color} className='w-[25px] h-[25px]' placeholder='Description' />
-                            <label htmlFor='color' onClick={ function(){ setFocus('color') } } className='text-1sm text-blue-dark-300 block font-medium'>{ color }</label>
-                        </div>
-                    </div>
-                </div>
-
-                <label className="text-1sm text-blue-dark-300 mb-2 font-medium tracking-wide">Type</label>
-                <Select formState={formState} register={regisrator.type} options={routines_types} className='mb-2 :focus:outline-0 border-collapse h-fit py-[3px]' placeholder='Type' />
-
-                {
-                  type == 'incremental' ? <div className="flex-col gap-2">                    
-                    <div className="relative flex justify-between items-center">
-                      <div className="absolute border-b-2 w-full border-blue-200 border-dashed top-2/4" style={{transform:'translateY(-50%)'}}></div>
-                      <div className="relative gap-2 flex text-center px-2 py-2 font-semibold text-sm bg-white text-blue-400"><label className="text-1sm">min</label><h3>0</h3></div>                                          
-                      <div className="relative gap-2 flex text-center px-2 py-2 font-semibold text-sm bg-white text-blue-400"><h3>{max}</h3><label className="text-1sm">max</label></div>
-                    </div>
-                    <div className="flex gap-2 w-min mx-auto">                   
-                      <Icon onClick={ ()=>{ if(max > 1) setMax(max - 1) } } className="h-5 w-5 filter-red-400 cursor-pointer" iconUrl={ Iconsax.bold['minus-circle.svg'] } />                            
-                      <Icon onClick={ ()=>{ setMax(max + 1) } } className="h-5 w-5 filter-blue-400 cursor-pointer" iconUrl={ Iconsax.bold['add.svg'] } />                                            
-                    </div>
-                  </div> : <></> 
-                }
-
-                <label className="text-1sm text-blue-dark-300 mb-2 font-medium border-b-2 py-2 border-blue-200 tracking-wide">Period</label>
-                <div className="flex mt-2 mb-6 gap-3 justify-between mx-5">
-
-                  {
-                    period_keys.map((val,key)=>{
-                      let vals = period_vals;                      
-                      
-                      if(vals[key]) {
-                        return <div onClick={()=>{ setPeriodVals(period_vals.map((c,i)=>{ return i == key && period_vals.filter( (e)=>{ if(e) {return e} }).length > 1 ? false : c ; }) ) }} className="relative rounded-full min-w-[35px] aspect-square font-semibold text-1sm bg-blue-400 text-white">                          
-                            <label className="absolute mx-auto justify-center cursor-pointer items-center h-full w-full flex top-0 left-0">{val[0].toUpperCase() + val[1]}</label>                          
-                        </div>
-                      } else {
-                        return <div onClick={()=>{ setPeriodVals(period_vals.map((c,i)=>{ return i == key ? true : c ; }) ) }} className="relative rounded-full min-w-[35px] aspect-square font-semibold text-1sm text-blue-400">                          
-                            <label className="absolute mx-auto justify-center cursor-pointer items-center h-full w-full flex top-0 left-0">{val[0].toUpperCase() + val[1]}</label>                          
-                        </div>
-                      }
-
-                    })
-                  }
-
-                </div>
-
-
-                <label className="text-1sm text-blue-dark-300 block font-medium tracking-wide pb-2">Description</label>
-                <Input formState={formState} type='textarea' register={regisrator.description} className='mb-2 h-fit py-[3px]' placeholder='Description' />
-
+    <div className="flex justify-between gap-2 mb-3">
+        <div className="flex-1">
+            <label className="text-1sm text-blue-dark-300 block font-medium tracking-wide pb-2">Icon</label>
+            <div onClick={onClickMaterial} className="flex cursor-pointer gap-2 items-center min-h-[40px] px-2 w-full text-sm border-b-2 border-blue-200 text-blue-dark-300">                            
+                <Icon style={{'filter':filterColorHtml}} className="h-6 w-6 cursor-pointer" iconUrl={ FilePath.icons.routines + icon } />                            
+                <label className='text-1sm cursor-pointer text-blue-dark-300 block font-medium'>{ icon }</label>
             </div>
+        </div>
+        <div className="flex-1">
+            <label className="text-1sm text-blue-dark-300 block font-medium tracking-wide pb-2">Color</label>
+            <div className="flex gap-2 items-center min-h-[40px] px-2 w-full text-sm border-b-2 border-blue-200 text-blue-dark-300">
+                <input id='color' type='color' onChange={(val)=>{ setColor(val.target.value); setFilterColor( filterColor(val.target.value)) }} value={color} className='w-[25px] h-[25px]' placeholder='Description' />
+                <label htmlFor='color' onClick={ function(){ setFocus('color') } } className='text-1sm text-blue-dark-300 block font-medium'>{ color }</label>
+            </div>
+        </div>
+    </div>
 
-        </form>
+    <label className="text-1sm text-blue-dark-300 mb-2 font-medium tracking-wide">Type</label>
+    <Select formState={formState} register={regisrator.type} options={routines_types} className='mb-2 :focus:outline-0 border-collapse h-fit py-[3px]' placeholder='Type' />
+
+    {
+      type == 'incremental' ? <div className="flex-col gap-2">                    
+        <div className="relative flex justify-between items-center">
+          <div className="absolute border-b-2 w-full border-blue-200 border-dashed top-2/4" style={{transform:'translateY(-50%)'}}></div>
+          <div className="relative gap-2 flex text-center px-2 py-2 font-semibold text-sm bg-white text-blue-400"><label className="text-1sm">min</label><h3>0</h3></div>                                          
+          <div className="relative gap-2 flex text-center px-2 py-2 font-semibold text-sm bg-white text-blue-400"><h3>{max}</h3><label className="text-1sm">max</label></div>
+        </div>
+        <div className="flex gap-2 w-min mx-auto">                   
+          <Icon onClick={ ()=>{ if(max > 1) setMax(max - 1) } } className="h-5 w-5 filter-red-400 cursor-pointer" iconUrl={ Iconsax.bold['minus-circle.svg'] } />                            
+          <Icon onClick={ ()=>{ setMax(max + 1) } } className="h-5 w-5 filter-blue-400 cursor-pointer" iconUrl={ Iconsax.bold['add.svg'] } />                                            
+        </div>
+      </div> : <></> 
+    }
+
+    <label className="text-1sm text-blue-dark-300 mb-2 font-medium border-b-2 py-2 border-blue-200 tracking-wide">Period</label>
+    <div className="flex mt-2 mb-6 gap-3 justify-between mx-5">
+
+      {
+        period_keys.map((val,key)=>{
+          let vals = period_vals;                      
+          
+          if(vals[key]) {
+            return <div onClick={()=>{ setPeriodVals(period_vals.map((c,i)=>{ return i == key && period_vals.filter( (e)=>{ if(e) {return e} }).length > 1 ? false : c ; }) ) }} className="relative rounded-full min-w-[35px] aspect-square font-semibold text-1sm bg-blue-400 text-white">                          
+                <label className="absolute mx-auto justify-center cursor-pointer items-center h-full w-full flex top-0 left-0">{val[0].toUpperCase() + val[1]}</label>                          
+            </div>
+          } else {
+            return <div onClick={()=>{ setPeriodVals(period_vals.map((c,i)=>{ return i == key ? true : c ; }) ) }} className="relative rounded-full min-w-[35px] aspect-square font-semibold text-1sm text-blue-400">                          
+                <label className="absolute mx-auto justify-center cursor-pointer items-center h-full w-full flex top-0 left-0">{val[0].toUpperCase() + val[1]}</label>                          
+            </div>
+          }
+
+        })
+      }
+
+    </div>
+
+    <label className="text-1sm text-blue-dark-300 block font-medium tracking-wide pb-2">Description</label>
+    <Input formState={formState} type='textarea' register={regisrator.description} className='mb-2 h-fit py-[3px]' placeholder='Description' />
+
+</div>
+
+</form>
+        </> : <></> }
+        { !informState.loading && informState.error ? <>
+          <div className="flex flex-col items-center text-center w-fit mx-auto h-fit flex px-2 py-2 text-1sm text-blue-dark-200 tracking-wide">
+            <h2 className="font-semibold">Terjadi Kesalahan</h2>
+            <p className="mb-2">Klik tombol dibawah ini untuk mencoba lagi</p>
+            <div className="h-fit w-fit px-1 py-1 bg-blue-400 rounded-full"><Icon onClick={refresh} className="h-4 w-4 filter-white hover:filter-blue-dark-300" iconUrl={Iconsax.bold['refresh-2.svg']}/>
+            </div>
+          </div>        
+        </> : <></> }      
       </LayerMain>
     </>
   );

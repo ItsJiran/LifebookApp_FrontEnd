@@ -259,7 +259,7 @@ export default function IndexPage() {
                       <>
                         <motion.div key='error-fetch' {...{...AnimateMotions['fade-in'],...TimingMotions['ease-0.5']}} className="flex flex-col items-center text-center w-fit mx-auto h-fit flex px-2 py-2 text-1sm text-blue-dark-200 tracking-wide">
                           <h2 className="font-semibold">Terjadi Kesalahan</h2>
-                          <p className="mb-2">Klik tambah dibawah ini untuk mencoba lagi</p>
+                          <p className="mb-2">Klik tombol dibawah ini untuk mencoba lagi</p>
                           <div className="h-fit w-fit px-1 py-1 bg-blue-400 rounded-full"><Icon onClick={fetchMaterials} className="h-4 w-4 filter-white hover:filter-blue-dark-300" iconUrl={Iconsax.bold['refresh.svg']}/>
                           </div>
                         </motion.div>

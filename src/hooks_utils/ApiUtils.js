@@ -105,6 +105,7 @@ export const useApiService = ()=>{
         // If By Status
         if(fetch.status){
             // Specific Api Message
+            if(fetch.response.data.message !== undefined) return fetch.response.data.message;
             if(fetch.status == 200) return 'Request berhasil dilakukan..';
             if(fetch.status == 401) return 'Request akses yang anda lakukan tidak sah..';
             if(fetch.status == 408) return 'Terjadi masalah pada jaringan anda..';

@@ -57,6 +57,24 @@ html, body, #root{
         padding-bottom:0px !important;
     }
 
+    .point {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%,-50%);
+      }
+    
+      .round {
+        transform: rotate(-90deg);
+        transition: 0.4s;
+
+        /* SVG */
+        fill: none;
+        stroke: red;
+        stroke-linecap: round;
+        stroke-dasharray: 70 999;
+      }
+
 @layer components{
 
     .filter-white{

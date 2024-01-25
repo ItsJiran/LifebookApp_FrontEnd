@@ -169,8 +169,6 @@ export default function JournalsPage() {
 
   }
 
-  // Of COURSE THIS SHIT WILL BE REWRITTEN FOR NOW ITS A TECHNICAL DEBT BUT THAT'S OKAY
-  // 15 OCT 2023 - G
   const renderData = ()=>{
 
     var elm = [];

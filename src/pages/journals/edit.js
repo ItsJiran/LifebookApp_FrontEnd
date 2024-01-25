@@ -121,7 +121,7 @@ export default function JournalsEditPage() {
 
     async function autosave(){
         await setSaveState(true);
-        setTimeout( function(){ editorSubmit(false); setSaveState(false) }, 1000 )                 
+        setTimeout( function(){ editorSubmit(false); setSaveState(false) }, 500 )                 
     }
 
     // ========================================================================================================

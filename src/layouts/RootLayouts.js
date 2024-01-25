@@ -72,7 +72,7 @@ export function RootLayouts({ children }) {
             </AnimatePresence>
 
             {/* FOR EVERY NOTIFICATION, POPUP AND TOAST */}
-            <LayerOverlayWrapper id='root-layer-overlay' className="z-[1] top-0">
+            <LayerOverlayWrapper id='root-layer-overlay' className="z-50 top-0">
                 <AnimatePresence mode='wait'>
                     {/* LOADING */}
                     { notifier.loading ? 
@@ -88,7 +88,7 @@ export function RootLayouts({ children }) {
 
                 {/* NOTIFICATION POP OVER */}
                 <div className="absolute top-4 h-full left-0 w-full">
-                    <div className="sticky mx-auto overflow-y-auto w-fit z-[51] top-4">
+                    <div className="sticky mx-auto overflow-y-auto w-fit z-[100] top-4">
                         <AnimatePresence mode='sync'>
                             {
                                 notifier.notification.length > 0 ? notifier.notification.map((item, index) => { if(index >= notifier.notification.length - 3)

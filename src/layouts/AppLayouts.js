@@ -17,6 +17,7 @@ import MaterialsViewPage from "../pages/materials/view";
 import RoutinesPage from "../pages/routines";
 import RoutinesTodayPage from "../pages/routines/index.today";
 import RoutinesAddPage from "../pages/routines/add";
+import RoutinesEditPage from "../pages/routines/edit";
 import RoutinesViewPage from "../pages/routines/view";
 
 import JournalsDate from "../pages/journals/index.date";
@@ -60,6 +61,7 @@ export function AppLayouts({ children }) {
 
                         <Route exact path='/routines/add'></Route>
                         <Route exact path='/routines/view/*'></Route>
+                        <Route exact path='/routines/edit/*'></Route>
                     </Route>
                                         
                     {/* -------------- ADMIN USER --------------- */}
@@ -96,8 +98,9 @@ export function AppLayouts({ children }) {
                     <Route exact path='/journals/:year/:month/:day' Component={JournalsDate}></Route>
                     <Route exact path='/routines' Component={RoutinesPage}></Route>
                     <Route exact path='/routines/today' Component={RoutinesTodayPage}></Route>
-                    <Route exact path='/routines/add' Component={RoutinesAddPage}></Route>
-                    <Route exact path='/routines/view' Component={RoutinesViewPage}></Route>
+                    <Route exact path='/routines/add' Component={RoutinesAddPage}></Route>                    
+                    <Route exact path='/routines/view/:id' Component={RoutinesViewPage}></Route>
+                    <Route exact path='/routines/edit/:id' Component={RoutinesEditPage}></Route>
                     <Route exact path='/materials/view/:id' Component={MaterialsViewPage}></Route>
 
                     {/* -------------- ADMIN USER --------------- */}

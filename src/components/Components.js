@@ -2,8 +2,8 @@ import React from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Iconsax, AnimateMotions, TimingMotions } from "../utils";
 
-export function Icon({type='',iconUrl='',className='',onClick}){
-    let icon = { backgroundImage: 'Url(' + iconUrl + ')' };
+export function Icon({type='', style={},iconUrl='',className='',onClick}){
+    let icon = {...style, backgroundImage: 'Url(' + iconUrl + ')' };
     return ( <div onClick={onClick} style={icon} className={className + ' ' + 'bg-cover'}></div> );
 }
 
