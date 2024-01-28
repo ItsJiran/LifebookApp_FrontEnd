@@ -162,12 +162,15 @@ export default function StandAlone_MaterialsViewPage() {
         let fetchFile = await ApiService.fetchAuth({
           slug:'material/'+id,
           method:'get',
-          responseType:'blob',
+          responseType:'arraybuffer',
+          headers: {
+            'Accept': 'application/pdf'
+          }
         });
 
         if(fetchFile.status == 200){
 
-          let blob = fetchFile.response.data;
+          let blob = new Blob([fetchFile.response.data]);        
           let file = URL.createObjectURL(blob);
 
           // Note this is from the library pdf js so its outside from react environ,ent
