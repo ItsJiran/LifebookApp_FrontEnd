@@ -67,7 +67,7 @@ export default function App() {
 
     return (
     
-        <BrowserRouter basename="/">
+        <BrowserRouter basename="/lifebook/">
             <Routes>
 
                 {/* ====================== ROOTS ROUTE =============================== */}
