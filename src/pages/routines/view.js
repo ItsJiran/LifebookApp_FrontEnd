@@ -75,14 +75,19 @@ export default function JournalsAddPage() {
           <label className="text-blue-dark-300 text-sm font-semibold tracking-wide leading-4 cursor-pointer">Select</label>
       </div>
 
-      <div onClick={ ()=>{ ChoicerController.action('Done') } } className="w-full px-2 py-2 flex align-center items-center">
-          <Icon className="filter-blue-400 h-6 w-6 mr-3 cursor-pointer" iconUrl={Iconsax.bold['tick-square.svg']}/>
-          <label className="text-blue-dark-300 text-sm font-semibold tracking-wide leading-4 cursor-pointer">Add Done</label>
+      <div onClick={ ()=>{ ChoicerController.action('Remove') } } className="w-full px-2 py-2 flex align-center items-center">
+          <Icon className="filter-blue-dark-300 h-6 w-6 mr-3 cursor-pointer" iconUrl={Iconsax.bold['close-circle.svg']}/>
+          <label className="text-blue-dark-300 text-sm font-semibold tracking-wide leading-4 cursor-pointer">Remove</label>
       </div>
 
-      <div onClick={ ()=>{ ChoicerController.action('Remove') } } className="w-full px-2 py-2 flex align-center items-center">
-          <Icon className="filter-red-400 h-6 w-6 mr-3 cursor-pointer" iconUrl={Iconsax.bold['close-square.svg']}/>
-          <label className="text-blue-dark-300 text-sm font-semibold tracking-wide leading-4 cursor-pointer">Add Remove</label>
+      <div onClick={ ()=>{ ChoicerController.action('Done') } } className="w-full px-2 py-2 flex align-center items-center">
+          <Icon className="filter-blue-400 h-6 w-6 mr-3 cursor-pointer" iconUrl={Iconsax.bold['calendar-tick.svg']}/>
+          <label className="text-blue-dark-300 text-sm font-semibold tracking-wide leading-4 cursor-pointer">Done</label>
+      </div>
+
+      <div onClick={ ()=>{ ChoicerController.action('Undone') } } className="w-full px-2 py-2 flex align-center items-center">
+          <Icon className="filter-red-400 h-6 w-6 mr-3 cursor-pointer" iconUrl={Iconsax.bold['calendar-remove.svg']}/>
+          <label className="text-blue-dark-300 text-sm font-semibold tracking-wide leading-4 cursor-pointer">Undone</label>
       </div>
   </> )
 
@@ -251,8 +256,11 @@ export default function JournalsAddPage() {
         fetch = await ApiService.fetchAuth({ slug: 'routine/minus/' + params.id + date_params, method: 'put'});
       else if (tool == 'Done')
         fetch = await ApiService.fetchAuth({ slug: 'routine/done/' + params.id + date_params, method: 'put'});
+      else if (tool == 'Undone')
+        fetch = await ApiService.fetchAuth({ slug: 'routine/undone/' + params.id + date_params, method: 'put'});
       else if (tool == 'Remove')
         fetch = await ApiService.fetchAuth({ slug: 'routine/remove/' + params.id + date_params, method: 'put'});
+        
 
       // Generate Notification Title And Message
       var title = ApiService.generateApiTitle(fetch);
@@ -440,10 +448,13 @@ export default function JournalsAddPage() {
                   tool == 'Select' ? <Icon onClick={onClickTool} className="filter-blue-dark-300 h-8 w-8 cursor-pointer" iconUrl={Iconsax.bold['mouse-1.svg']}/> : <></>
                 }
                 {               
-                  tool == 'Done' ? <Icon onClick={onClickTool} className="filter-blue-400 h-8 w-8 cursor-pointer" iconUrl={Iconsax.bold['tick-square.svg']}/> : <></>
+                  tool == 'Done' ? <Icon onClick={onClickTool} className="filter-blue-400 h-8 w-8 cursor-pointer" iconUrl={Iconsax.bold['calendar-tick.svg']}/> : <></>
                 }
                 {               
-                  tool == 'Remove' ? <Icon onClick={onClickTool} className="filter-red-400 h-8 w-8 cursor-pointer" iconUrl={Iconsax.bold['close-square.svg']}/> : <></>                                
+                  tool == 'Remove' ? <Icon onClick={onClickTool} className="filter-blue-dark-300 h-8 w-8 cursor-pointer" iconUrl={Iconsax.bold['close-circle.svg']}/> : <></>                                
+                }
+                {               
+                  tool == 'Undone' ? <Icon onClick={onClickTool} className="filter-red-400 h-8 w-8 cursor-pointer" iconUrl={Iconsax.bold['calendar-remove.svg']}/> : <></>                                
                 }
             </Container> 
 

@@ -293,8 +293,8 @@ export function RoutineDatePicker({ refresh, action, className = '', informState
                                         }
                                     </label>
 
-                                    <div className="cursor-pointer point select-none h-full w-full">                                                                      
-                                        <svg className="round" style={{ strokeWidth: 8, strokeDasharray:logState.data[date_str].circle + ' 999', 
+                                    <div className="cursor-pointer point select-none h-full w-full">                                      
+                                        <svg className="round" style={{ strokeWidth: 8, strokeDasharray: informState.data.type !== 'checklist' ? logState.data[date_str].circle + ' 999' : '999 999' , 
                                         stroke: 'rgba(' + (48+((informState.data.max_val - logState.data[date_str].val) / informState.data.max_val * 228)) + ', 72, ' + (228-((informState.data.max_val - logState.data[date_str].val) / informState.data.max_val * 228)) + ', 70)', opacity:0.8 }} width="100%" height="100%" viewBox="0 0 100 100">
                                             <circle cx="50" cy="50" r="40" />
                                         </svg>
