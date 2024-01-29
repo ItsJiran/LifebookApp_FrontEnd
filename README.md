@@ -6,7 +6,7 @@ LifebookApp is a web application that made by me, the main aim of the app is abo
 
 The web application was split up into [FrontEnd](https://github.com/ItsJiran/LifebookApp_FrontEnd) and [BackEnd](https://github.com/ItsJiran/LifebookApp_BackEnd). why i split it up instead of monolithic is because i want to build SinglePage Application so it act like real application, no reloading for switching between pages..
 
-You can see the application in the following video : 
+You can see the application in this following video : https://youtu.be/KWsCn52xOEc
 
 **TechStacks** : ReactJs, Laravel, MariaDB, Webpack, Tailwind, EditorJs.. 
 
